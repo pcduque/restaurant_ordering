@@ -1,0 +1,23 @@
+import { apiClient } from './client'
+import type { CartPricingRequest } from '../types/cart.types'
+import type { CreateOrderResponse, Order } from '../types/order.types'
+import type { TimelinePage } from '../types/timeline.types'
+
+export async function createOrder(payload: CartPricingRequest, idempotencyKey: string): Promise<CreateOrderResponse> {
+  const response = await apiClient.post<CreateOrderResponse>('/orders', payload, {
+    headers: { 'Idempotency-Key': idempotencyKey },
+  })
+  return response.data
+}
+
+export async function getOrder(orderId: string): Promise<Order> {
+  const response = await apiClient.get<Order>(`/orders/${orderId}`)
+  return response.data
+}
+
+export async function getOrderTimeline(orderId: string, cursor?: string): Promise<TimelinePage> {
+  const response = await apiClient.get<TimelinePage>(`/orders/${orderId}/timeline`, {
+    params: { pageSize: 20, cursor },
+  })
+  return response.data
+}
