@@ -1,98 +1,165 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Restaurant Ordering + Order Timeline
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS backend for a restaurant ordering technical test. It exposes a menu, server-side cart pricing, idempotent order creation, order lookup, and an append-only order timeline audit trail.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- NestJS + TypeScript
+- MongoDB + Mongoose
+- Docker Compose for local MongoDB
+- Serverless Framework + serverless-offline
+- Jest
+- Swagger/OpenAPI at `/docs`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Architecture
 
-## Project setup
+The project is a modular monolith split by domain. Controllers stay thin, services contain business rules, and repositories own database access.
 
-```bash
-$ yarn install
+```text
+src/
+  common/      shared constants, enums, interceptors, utilities
+  menu/        menu API, product schema, seed data
+  cart/        pricing API and pricing business rules
+  orders/      order API, idempotency, order persistence
+  timeline/    append-only audit events and cursor pagination
+  database/    MongoDB module and seed script
 ```
 
-## Compile and run the project
+## Technical Decisions
+
+- Money is always calculated in integer cents.
+- Tax and service fee live in `src/common/constants/money.constants.ts`.
+- The backend never accepts client-provided totals.
+- Orders use a mock user: `mock-user-1`.
+- `Idempotency-Key` is required for `POST /orders` and persisted with a unique MongoDB index.
+- Timeline events are append-only and deduplicated with a unique `eventId` index.
+- Timeline payloads are rejected before persistence when JSON size exceeds 16KB.
+- Request logging masks emails and phone numbers before printing request bodies.
+
+## Prerequisites
+
+- Node.js 20+
+- npm
+- Docker Desktop
+
+## Setup
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+npm install
+cp .env.example .env
+docker compose up -d
+npm run seed
 ```
 
-## Run tests
+## Run Locally
+
+Regular Nest development server:
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+npm run start:dev
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Serverless offline API on port `4000`:
 
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+npm run start:offline
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Swagger docs:
 
-## Resources
+```text
+http://localhost:4000/docs
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Test
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npm test
+npm run test:watch
+```
 
-## Support
+## Ports
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- API with serverless-offline: `4000`
+- MongoDB: `27017`
+- Swagger: `/docs`
 
-## Stay in touch
+## API Endpoints
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- `GET /menu`
+- `POST /cart/pricing`
+- `POST /orders`
+- `GET /orders/:orderId`
+- `GET /orders/:orderId/timeline?pageSize=20&cursor=...`
 
-## License
+## Example cURL
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Get menu:
+
+```bash
+curl http://localhost:4000/menu
+```
+
+Price cart:
+
+```bash
+curl -X POST http://localhost:4000/cart/pricing \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {
+        "productId": "classic-burger",
+        "quantity": 2,
+        "modifiers": [
+          { "groupId": "protein", "optionIds": ["beef"] },
+          { "groupId": "toppings", "optionIds": ["cheese", "lettuce"] },
+          { "groupId": "sauces", "optionIds": ["bbq"] }
+        ]
+      }
+    ]
+  }'
+```
+
+Create order:
+
+```bash
+curl -X POST http://localhost:4000/orders \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: test-key-123" \
+  -d '{
+    "items": [
+      {
+        "productId": "classic-burger",
+        "quantity": 2,
+        "modifiers": [
+          { "groupId": "protein", "optionIds": ["beef"] },
+          { "groupId": "toppings", "optionIds": ["cheese"] },
+          { "groupId": "sauces", "optionIds": ["bbq"] }
+        ]
+      }
+    ]
+  }'
+```
+
+Get order:
+
+```bash
+curl http://localhost:4000/orders/REPLACE_WITH_ORDER_ID
+```
+
+Get timeline:
+
+```bash
+curl "http://localhost:4000/orders/REPLACE_WITH_ORDER_ID/timeline?pageSize=20"
+```
+
+## Acceptance Checklist
+
+- `npm install`
+- `cp .env.example .env`
+- `docker compose up -d`
+- `npm run seed`
+- `npm run start:offline`
+- Open `http://localhost:4000/docs`
+- `npm test`
+- `npm run build`
