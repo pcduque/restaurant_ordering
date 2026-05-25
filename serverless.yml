@@ -1,0 +1,31 @@
+service: restaurant-ordering
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: local
+  environment:
+    MONGODB_URI: ${env:MONGODB_URI, 'mongodb://localhost:27017/restaurant_ordering'}
+    NODE_ENV: ${env:NODE_ENV, 'development'}
+
+plugins:
+  - serverless-offline
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: '*'
+      - httpApi:
+          path: /
+          method: '*'
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+    lambdaPort: 4002
+    noPrependStageInUrl: true
