@@ -9,12 +9,35 @@ import { TimelineEventDetails } from './TimelineEventDetails'
 
 interface TimelineEventCardProps {
   event: TimelineEvent
+  compact?: boolean
 }
 
-export function TimelineEventCard({ event }: TimelineEventCardProps) {
+export function TimelineEventCard({ event, compact = false }: TimelineEventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const meta = getEventMeta(event.type)
   const Icon = meta.Icon
+
+  if (compact) {
+    return (
+      <div className="rounded-[12px] border border-[#e6ddd0] bg-white/70 p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className={meta.tone}>{meta.label}</Badge>
+              <Badge className="bg-[#f8f1e6] text-[#756b60] ring-[#e6ddd0]">{event.source}</Badge>
+            </div>
+            <p className="mt-2 text-sm font-semibold text-[#17150f]">{formatDateTime(event.timestamp)}</p>
+            <p className="mt-1 break-all text-xs text-[#8b8175]">Correlation: {event.correlationId}</p>
+          </div>
+          <Button variant="ghost" onClick={() => setExpanded((value) => !value)} className="self-start text-[#a42d08]">
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            Payload
+          </Button>
+        </div>
+        {expanded ? <TimelineEventDetails payload={event.payload} /> : null}
+      </div>
+    )
+  }
 
   return (
     <div className="relative pl-9">

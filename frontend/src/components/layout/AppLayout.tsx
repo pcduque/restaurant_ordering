@@ -4,9 +4,9 @@ import { Header } from './Header'
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f1e6] text-[#191814]">
       <Header />
-      <main className="mx-auto min-h-[calc(100vh-144px)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto min-h-[calc(100vh-144px)] max-w-[1440px] px-4 py-8 sm:px-8 lg:px-10">
         <Outlet />
       </main>
       <Footer />
