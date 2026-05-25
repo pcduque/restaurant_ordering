@@ -4,23 +4,48 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
 describe('Orders', () => {
+  const user = { userId: 'user-1', username: 'demo' };
+
   function createService() {
     const idempotency = new Map();
-    const pricingService = { priceCart: jest.fn(async () => ({ items: [], subtotalCents: 100, taxCents: 8, serviceFeeCents: 250, totalCents: 358 })) };
-    const ordersRepository = { create: jest.fn(async (order) => order), findById: jest.fn() };
+    const pricingService = {
+      priceCart: jest.fn(async () => ({
+        items: [],
+        subtotalCents: 100,
+        taxCents: 8,
+        serviceFeeCents: 250,
+        totalCents: 358,
+      })),
+    };
+    const ordersRepository = {
+      create: jest.fn(async (order) => order),
+      findById: jest.fn(),
+    };
     const idempotencyService = {
-      find: jest.fn(async (key, userId) => idempotency.get(`${userId}:${key}`) ?? null),
+      find: jest.fn(
+        async (key, userId) => idempotency.get(`${userId}:${key}`) ?? null,
+      ),
       reserve: jest.fn(async (key, userId) => {
         const record = { key, userId };
         idempotency.set(`${userId}:${key}`, record);
         return record;
       }),
       complete: jest.fn(async (key, userId, orderId, correlationId) => {
-        idempotency.set(`${userId}:${key}`, { key, userId, orderId, correlationId });
+        idempotency.set(`${userId}:${key}`, {
+          key,
+          userId,
+          orderId,
+          correlationId,
+        });
       }),
     };
     const timelineService = { appendEvent: jest.fn(async (event) => event) };
-    const service = new OrdersService(pricingService as never, ordersRepository as never, idempotencyService as never, timelineService as never);
+    const service = new OrdersService(
+      pricingService as never,
+      ordersRepository as never,
+      idempotencyService as never,
+      timelineService as never,
+    );
     return { service, ordersRepository };
   }
 
@@ -28,7 +53,7 @@ describe('Orders', () => {
 
   it('supports Idempotency-Key', async () => {
     const { service, ordersRepository } = createService();
-    const response = await service.createOrder(dto, 'test-key-123');
+    const response = await service.createOrder(dto, 'test-key-123', user);
 
     expect(response.status).toBe(OrderStatus.PLACED);
     expect(response.orderId).toBeDefined();
@@ -37,8 +62,8 @@ describe('Orders', () => {
 
   it('same key returns same orderId', async () => {
     const { service, ordersRepository } = createService();
-    const first = await service.createOrder(dto, 'same-key');
-    const second = await service.createOrder(dto, 'same-key');
+    const first = await service.createOrder(dto, 'same-key', user);
+    const second = await service.createOrder(dto, 'same-key', user);
 
     expect(second.orderId).toBe(first.orderId);
     expect(ordersRepository.create).toHaveBeenCalledTimes(1);
@@ -48,6 +73,8 @@ describe('Orders', () => {
     const { service } = createService();
     const controller = new OrdersController(service);
 
-    expect(() => controller.createOrder(dto, undefined)).toThrow(BadRequestException);
+    expect(() => controller.createOrder(dto, undefined)).toThrow(
+      BadRequestException,
+    );
   });
 });

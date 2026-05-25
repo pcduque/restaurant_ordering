@@ -1,8 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
-import { TimelineEventSource, TimelineEventType } from '../common/enums/timeline.enum';
+import {
+  TimelineEventSource,
+  TimelineEventType,
+} from '../common/enums/timeline.enum';
 import { TimelineService } from './timeline.service';
 
 describe('TimelineService', () => {
+  const user = { userId: 'mock-user-1', username: 'demo' };
+
   function createService() {
     const events = [];
     const repository = {
@@ -14,11 +19,22 @@ describe('TimelineService', () => {
         events.push(event);
         return event;
       }),
-      findByOrder: jest.fn(async (orderId: string, pageSize: number, cursor?: string) =>
-        events
-          .filter((event) => event.orderId === orderId && (!cursor || event.timestamp > new Date(cursor)))
-          .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
-          .slice(0, pageSize + 1),
+      findByOrder: jest.fn(
+        async (
+          orderId: string,
+          userId: string,
+          pageSize: number,
+          cursor?: string,
+        ) =>
+          events
+            .filter(
+              (event) =>
+                event.orderId === orderId &&
+                event.userId === userId &&
+                (!cursor || event.timestamp > new Date(cursor)),
+            )
+            .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+            .slice(0, pageSize + 1),
       ),
     };
     return { service: new TimelineService(repository as never), repository };
@@ -54,7 +70,7 @@ describe('TimelineService', () => {
     await service.appendEvent(input);
 
     expect(repository.append).toHaveBeenCalledTimes(2);
-    const page = await service.getOrderTimeline('order-1');
+    const page = await service.getOrderTimeline('order-1', user);
     expect(page.items).toHaveLength(1);
   });
 
@@ -81,7 +97,10 @@ describe('TimelineService', () => {
       timestamp: new Date('2026-01-01T00:00:00.000Z'),
     });
 
-    const page = await service.getOrderTimeline('order-1');
-    expect(page.items.map((event) => event.eventId)).toEqual(['event-1', 'event-2']);
+    const page = await service.getOrderTimeline('order-1', user);
+    expect(page.items.map((event) => event.eventId)).toEqual([
+      'event-1',
+      'event-2',
+    ]);
   });
 });

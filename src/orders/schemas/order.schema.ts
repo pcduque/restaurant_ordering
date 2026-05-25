@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import type { PricingBreakdown } from '../../cart/dto/pricing-response.dto';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 
 export type OrderDocument = HydratedDocument<Order>;
@@ -19,7 +20,7 @@ export class Order {
   items: Record<string, unknown>[];
 
   @Prop({ type: Object, required: true })
-  pricing: Record<string, unknown>;
+  pricing: PricingBreakdown;
 
   createdAt: Date;
   updatedAt: Date;
