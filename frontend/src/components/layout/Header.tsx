@@ -29,7 +29,7 @@ export function Header() {
             L
           </span>
           <span>
-            <span className="block font-serif text-xl font-bold text-[#17150f]">Lumière Dining</span>
+            <span className="block font-serif text-xl font-bold text-[#17150f]">SunDevs Restaurant Ordering</span>
           </span>
         </Link>
 
@@ -42,12 +42,19 @@ export function Header() {
           >
             Menu
           </NavLink>
-          <span>Reservations</span>
+          <NavLink
+            to="/orders"
+            className={({ isActive }) =>
+              `${isActive ? 'text-[#a42d08]' : 'hover:text-[#a42d08]'}`
+            }
+          >
+            Orders
+          </NavLink>
           <span>About</span>
         </nav>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-[11px] font-bold uppercase text-[#1f1c16] sm:inline">Find a table</span>
+          <span className="hidden text-[11px] font-bold uppercase text-[#1f1c16] sm:inline">Track orders</span>
           <NavLink
             to="/cart"
             className={({ isActive }) =>

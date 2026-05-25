@@ -20,6 +20,7 @@ describe('Orders', () => {
     const ordersRepository = {
       create: jest.fn(async (order) => order),
       findById: jest.fn(),
+      updateStatus: jest.fn(),
     };
     const idempotencyService = {
       find: jest.fn(
@@ -46,7 +47,7 @@ describe('Orders', () => {
       idempotencyService as never,
       timelineService as never,
     );
-    return { service, ordersRepository };
+    return { service, ordersRepository, timelineService };
   }
 
   const dto = { items: [{ productId: 'fries', quantity: 1, modifiers: [] }] };
@@ -75,6 +76,46 @@ describe('Orders', () => {
 
     expect(() => controller.createOrder(dto, undefined)).toThrow(
       BadRequestException,
+    );
+  });
+
+  it('updates order status and writes a timeline event', async () => {
+    const { service, ordersRepository, timelineService } = createService();
+    ordersRepository.findById.mockResolvedValue({
+      _id: 'order-1',
+      userId: user.userId,
+      status: OrderStatus.PLACED,
+      items: [],
+      pricing: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    ordersRepository.updateStatus.mockResolvedValue({
+      _id: 'order-1',
+      userId: user.userId,
+      status: OrderStatus.PREPARING,
+      items: [],
+      pricing: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const response = await service.updateOrderStatus(
+      'order-1',
+      OrderStatus.PREPARING,
+      user,
+    );
+
+    expect(response.status).toBe(OrderStatus.PREPARING);
+    expect(ordersRepository.updateStatus).toHaveBeenCalledWith(
+      'order-1',
+      OrderStatus.PREPARING,
+    );
+    expect(timelineService.appendEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: 'order-1',
+        payload: { from: OrderStatus.PLACED, to: OrderStatus.PREPARING },
+      }),
     );
   });
 });

@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 import type { CartPricingRequest } from '../types/cart.types'
-import type { CreateOrderResponse, Order } from '../types/order.types'
+import type { CreateOrderResponse, Order, OrderStatus } from '../types/order.types'
 import type { TimelinePage } from '../types/timeline.types'
 
 export async function createOrder(payload: CartPricingRequest, idempotencyKey: string): Promise<CreateOrderResponse> {
@@ -24,5 +24,10 @@ export async function getOrderTimeline(orderId: string, cursor?: string): Promis
   const response = await apiClient.get<TimelinePage>(`/orders/${orderId}/timeline`, {
     params: { pageSize: 20, cursor },
   })
+  return response.data
+}
+
+export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<Order> {
+  const response = await apiClient.patch<Order>(`/orders/${orderId}/status`, { status })
   return response.data
 }

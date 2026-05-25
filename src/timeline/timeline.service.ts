@@ -52,14 +52,7 @@ export class TimelineService {
     pageSize = 20,
     cursor?: string,
   ) {
-    if (pageSize > 50) {
-      throw new BadRequestException(
-        'pageSize must be less than or equal to 50',
-      );
-    }
-    if (pageSize < 1) {
-      throw new BadRequestException('pageSize must be greater than 0');
-    }
+    this.validatePageSize(pageSize);
 
     const events = await this.timelineRepository.findByOrder(
       orderId,
@@ -81,5 +74,44 @@ export class TimelineService {
       nextCursor,
       pageSize,
     };
+  }
+
+  async getUserTimeline(
+    user: AuthenticatedUser,
+    pageSize = 10,
+    cursor?: string,
+  ) {
+    this.validatePageSize(pageSize);
+
+    const events = await this.timelineRepository.findByUser(
+      user.userId,
+      pageSize,
+      cursor,
+    );
+    const page = events.slice(0, pageSize);
+    const nextCursor =
+      events.length > pageSize
+        ? page[page.length - 1]?.timestamp.toISOString()
+        : null;
+
+    return {
+      items: page.map((event) => ({
+        ...event,
+        timestamp: event.timestamp.toISOString(),
+      })),
+      nextCursor,
+      pageSize,
+    };
+  }
+
+  private validatePageSize(pageSize: number) {
+    if (pageSize > 50) {
+      throw new BadRequestException(
+        'pageSize must be less than or equal to 50',
+      );
+    }
+    if (pageSize < 1) {
+      throw new BadRequestException('pageSize must be greater than 0');
+    }
   }
 }

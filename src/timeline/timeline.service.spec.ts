@@ -36,6 +36,17 @@ describe('TimelineService', () => {
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
             .slice(0, pageSize + 1),
       ),
+      findByUser: jest.fn(
+        async (userId: string, pageSize: number, cursor?: string) =>
+          events
+            .filter(
+              (event) =>
+                event.userId === userId &&
+                (!cursor || event.timestamp < new Date(cursor)),
+            )
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+            .slice(0, pageSize + 1),
+      ),
     };
     return { service: new TimelineService(repository as never), repository };
   }
@@ -101,6 +112,37 @@ describe('TimelineService', () => {
     expect(page.items.map((event) => event.eventId)).toEqual([
       'event-1',
       'event-2',
+    ]);
+  });
+
+  it('returns recent events for the authenticated user', async () => {
+    const { service } = createService();
+    await service.appendEvent({
+      eventId: 'event-1',
+      orderId: 'order-1',
+      userId: 'mock-user-1',
+      type: TimelineEventType.ORDER_PLACED,
+      source: TimelineEventSource.API,
+      correlationId: 'corr-1',
+      payload: {},
+      timestamp: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    await service.appendEvent({
+      eventId: 'event-2',
+      orderId: 'order-2',
+      userId: 'mock-user-1',
+      type: TimelineEventType.ORDER_STATUS_CHANGED,
+      source: TimelineEventSource.API,
+      correlationId: 'corr-2',
+      payload: {},
+      timestamp: new Date('2026-01-02T00:00:00.000Z'),
+    });
+
+    const page = await service.getUserTimeline(user);
+
+    expect(page.items.map((event) => event.eventId)).toEqual([
+      'event-2',
+      'event-1',
     ]);
   });
 });

@@ -5,7 +5,7 @@ import {
   TimelineEvent,
   TimelineEventSchema,
 } from './schemas/timeline-event.schema';
-import { TimelineController } from './timeline.controller';
+import { TimelineController, UserTimelineController } from './timeline.controller';
 import { TimelineRepository } from './timeline.repository';
 import { TimelineService } from './timeline.service';
 
@@ -16,7 +16,7 @@ import { TimelineService } from './timeline.service';
       { name: TimelineEvent.name, schema: TimelineEventSchema },
     ]),
   ],
-  controllers: [TimelineController],
+  controllers: [TimelineController, UserTimelineController],
   providers: [TimelineService, TimelineRepository],
   exports: [TimelineService, TimelineRepository],
 })

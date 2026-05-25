@@ -24,4 +24,15 @@ export class OrdersRepository {
       .lean<Order[]>()
       .exec();
   }
+
+  updateStatus(orderId: string, status: Order['status']): Promise<Order | null> {
+    return this.orderModel
+      .findByIdAndUpdate(
+        orderId,
+        { $set: { status, updatedAt: new Date() } },
+        { new: true },
+      )
+      .lean<Order>()
+      .exec();
+  }
 }

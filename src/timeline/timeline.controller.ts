@@ -44,3 +44,25 @@ export class TimelineController {
     );
   }
 }
+
+@ApiTags('timeline')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
+@Controller('timeline')
+export class UserTimelineController {
+  constructor(private readonly timelineService: TimelineService) {}
+
+  @Get('me')
+  @ApiQuery({ name: 'pageSize', required: false, example: 10 })
+  @ApiQuery({ name: 'cursor', required: false })
+  @ApiOkResponse({
+    description: 'Returns recent timeline events for the authenticated user.',
+  })
+  getMyTimeline(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('pageSize', new ParseIntPipe({ optional: true })) pageSize = 10,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.timelineService.getUserTimeline(user, pageSize, cursor);
+  }
+}

@@ -1,17 +1,69 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getApiErrorMessage } from '../api/client'
 import { getMenu } from '../api/menu.api'
+import { getMyTimeline } from '../api/timeline.api'
 import { CartDrawer } from '../components/cart/CartDrawer'
 import { ProductCustomizeModal } from '../components/menu/ProductCustomizeModal'
 import { ProductGrid } from '../components/menu/ProductGrid'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Spinner } from '../components/ui/Spinner'
+import { useAuthStore } from '../store/auth.store'
 import { useCartStore } from '../store/cart.store'
 import type { Product } from '../types/menu.types'
+import type { TimelineEvent, TimelineEventType } from '../types/timeline.types'
+
+const eventAliases: Record<TimelineEventType, string> = {
+  CART_ITEM_ADDED: 'cart.item_added',
+  CART_ITEM_UPDATED: 'cart.item_updated',
+  CART_ITEM_REMOVED: 'cart.item_removed',
+  PRICING_CALCULATED: 'server.recalculate',
+  ORDER_PLACED: 'order.placed',
+  ORDER_STATUS_CHANGED: 'order.status_changed',
+  VALIDATION_FAILED: 'validation.failed',
+}
+
+const eventPrefixes: Record<TimelineEventType, string> = {
+  CART_ITEM_ADDED: 'EVENT',
+  CART_ITEM_UPDATED: 'EVENT',
+  CART_ITEM_REMOVED: 'EVENT',
+  PRICING_CALCULATED: 'PRICE',
+  ORDER_PLACED: 'ORDER',
+  ORDER_STATUS_CHANGED: 'STATUS',
+  VALIDATION_FAILED: 'ERROR',
+}
+
+function formatEventTime(timestamp: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(new Date(timestamp))
+}
+
+function formatEventPayload(event: TimelineEvent) {
+  const payload: Record<string, unknown> = { order_id: event.orderId.slice(0, 8) }
+
+  if (event.type === 'PRICING_CALCULATED' && typeof event.payload.pricing === 'object' && event.payload.pricing !== null) {
+    const pricing = event.payload.pricing as Record<string, unknown>
+    payload.subtotal = pricing.subtotalCents
+    payload.tax = pricing.taxCents
+    payload.service_fee = pricing.serviceFeeCents
+    payload.total = pricing.totalCents
+  } else {
+    Object.assign(payload, event.payload)
+  }
+
+  return JSON.stringify(payload).replace(/"([^"]+)":/g, '$1:')
+}
 
 export function MenuPage() {
+  const token = useAuthStore((state) => state.token)
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [auditEvents, setAuditEvents] = useState<TimelineEvent[]>([])
+  const [auditLoading, setAuditLoading] = useState(false)
+  const [auditError, setAuditError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const addItem = useCartStore((state) => state.addItem)
@@ -28,9 +80,33 @@ export function MenuPage() {
     }
   }, [])
 
+  const loadAuditEvents = useCallback(async () => {
+    if (!token) {
+      setAuditEvents([])
+      setAuditError('')
+      return
+    }
+
+    setAuditLoading(true)
+    setAuditError('')
+    try {
+      const page = await getMyTimeline(6)
+      setAuditEvents(page.items)
+    } catch (err) {
+      setAuditError(getApiErrorMessage(err))
+      setAuditEvents([])
+    } finally {
+      setAuditLoading(false)
+    }
+  }, [token])
+
   useEffect(() => {
     void loadMenu()
   }, [loadMenu])
+
+  useEffect(() => {
+    void loadAuditEvents()
+  }, [loadAuditEvents])
 
   function handleAdd(product: Product) {
     if (product.modifierGroups.length > 0) {
@@ -79,30 +155,35 @@ export function MenuPage() {
             </div>
             <ProductGrid products={signatureProducts} onAdd={handleAdd} />
 
-            <section className="mt-28">
-              <div className="mb-8 flex items-center gap-5">
-                <h2 className="font-serif text-2xl font-black text-[#17150f]">Event Audit Trail</h2>
-                <div className="h-px flex-1 bg-[#e7dece]" />
-                <span className="hidden text-[10px] font-bold uppercase text-[#b8b0a2] sm:inline">Live server stream</span>
-              </div>
-              <div className="rounded-[8px] border border-[#eadfce] bg-white p-6 font-mono text-xs shadow-sm">
-                <div className="mb-5 flex gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-200" />
-                  <span className="h-2 w-2 rounded-full bg-yellow-200" />
-                  <span className="h-2 w-2 rounded-full bg-green-200" />
+            {token ? (
+              <section className="mt-28">
+                <div className="mb-8 flex items-center gap-5">
+                  <h2 className="font-serif text-2xl font-black text-[#17150f]">Event Audit Trail</h2>
+                  <div className="h-px flex-1 bg-[#e7dece]" />
+                  <span className="hidden text-[10px] font-bold uppercase text-[#b8b0a2] sm:inline">Live server stream</span>
                 </div>
-                <p>
-                  <span className="text-[#c84a18]">INIT</span> 14:02:11 <span className="text-blue-600">session.start</span> {'{'} user_id: "anon_912" {'}'}
-                </p>
-                <p className="mt-3">
-                  <span className="text-[#c84a18]">EVENT</span> 14:05:43 <span className="text-blue-600">cart.item_added</span> {'{'} id: "caesar_01", qty: 1 {'}'}
-                </p>
-                <p className="mt-3">
-                  <span className="text-[#c84a18]">PRICE</span> 14:05:44 <span className="text-blue-600">server.recalculate</span> {'{'} subtotal: 8.50, tax: 0.72 {'}'}
-                </p>
-                <p className="mt-3 pl-10 text-[#9d978b]">listening for interactions ...</p>
-              </div>
-            </section>
+                <div className="overflow-x-auto rounded-[8px] border border-[#eadfce] bg-white p-6 font-mono text-xs shadow-sm">
+                  <div className="mb-5 flex gap-2">
+                    <span className="h-2 w-2 rounded-full bg-red-200" />
+                    <span className="h-2 w-2 rounded-full bg-yellow-200" />
+                    <span className="h-2 w-2 rounded-full bg-green-200" />
+                  </div>
+
+                  {auditLoading ? <p className="text-[#9d978b]">loading authenticated events ...</p> : null}
+                  {auditError ? <p className="text-[#c84a18]">{auditError}</p> : null}
+                  {!auditLoading && !auditError && auditEvents.length === 0 ? <p className="text-[#9d978b]">no events recorded for this user yet ...</p> : null}
+                  {!auditLoading && !auditError
+                    ? auditEvents.map((event) => (
+                        <p className="mt-3 whitespace-nowrap first:mt-0" key={event.eventId}>
+                          <span className="text-[#c84a18]">{eventPrefixes[event.type]}</span> {formatEventTime(event.timestamp)}{' '}
+                          <span className="text-blue-600">{eventAliases[event.type]}</span> {formatEventPayload(event)}
+                        </p>
+                      ))
+                    : null}
+                  {!auditLoading && !auditError && auditEvents.length > 0 ? <p className="mt-3 pl-10 text-[#9d978b]">listening for interactions ...</p> : null}
+                </div>
+              </section>
+            ) : null}
 
             <section className="mt-28">
               <div className="mb-8 flex items-center gap-5">
