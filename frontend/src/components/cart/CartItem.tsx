@@ -1,4 +1,4 @@
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { Minus, MoreHorizontal, Plus, Trash2 } from 'lucide-react'
 import { useCartStore } from '../../store/cart.store'
 import type { CartItem as CartItemType } from '../../types/cart.types'
 import { formatMoney } from '../../utils/money'
@@ -6,9 +6,10 @@ import { Button } from '../ui/Button'
 
 interface CartItemProps {
   item: CartItemType
+  variant?: 'default' | 'checkout'
 }
 
-export function CartItem({ item }: CartItemProps) {
+export function CartItem({ item, variant = 'default' }: CartItemProps) {
   const increaseQuantity = useCartStore((state) => state.increaseQuantity)
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity)
   const removeItem = useCartStore((state) => state.removeItem)
@@ -16,6 +17,44 @@ export function CartItem({ item }: CartItemProps) {
     (sum, modifier) => sum + modifier.options.reduce((optionSum, option) => optionSum + option.priceCents, 0),
     0,
   )
+
+  if (variant === 'checkout') {
+    return (
+      <div className="rounded-[28px] bg-white p-8 shadow-sm sm:p-12">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <h3 className="font-serif text-4xl font-black text-[#17150f]">{item.productName}</h3>
+            <p className="mt-3 text-xl text-[#9a8e82]">{formatMoney(item.basePriceCents + modifierTotal)} per serving</p>
+            {item.selectedModifiers.length > 0 ? (
+              <div className="mt-5 space-y-1 text-sm text-[#7d7468]">
+                {item.selectedModifiers.map((modifier) => (
+                  <p key={modifier.groupId}>
+                    <span className="font-bold">{modifier.groupName}:</span> {modifier.options.map((option) => option.name).join(', ')}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <button className="text-[#c7beb3]" type="button" onClick={() => removeItem(item.localCartItemId)} aria-label={`Remove ${item.productName}`}>
+            <MoreHorizontal className="h-7 w-7" />
+          </button>
+        </div>
+
+        <div className="mt-8 flex items-center justify-between">
+          <div className="inline-flex items-center rounded-full bg-[#f3eee6] px-5 py-3">
+            <button className="px-3 text-xl font-bold text-[#17150f]" type="button" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
+              -
+            </button>
+            <span className="min-w-12 text-center text-2xl font-black text-[#17150f]">{item.quantity}</span>
+            <button className="px-3 text-xl font-bold text-[#17150f]" type="button" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
+              +
+            </button>
+          </div>
+          <p className="font-serif text-4xl font-black text-[#17150f]">{formatMoney((item.basePriceCents + modifierTotal) * item.quantity)}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="rounded-[8px] border border-orange-100 bg-white p-4">

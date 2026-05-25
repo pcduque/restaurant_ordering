@@ -7,9 +7,31 @@ interface TimelineListProps {
   nextCursor: string | null
   loadingMore: boolean
   onLoadMore: () => void
+  variant?: 'default' | 'audit'
 }
 
-export function TimelineList({ events, nextCursor, loadingMore, onLoadMore }: TimelineListProps) {
+export function TimelineList({ events, nextCursor, loadingMore, onLoadMore, variant = 'default' }: TimelineListProps) {
+  if (variant === 'audit') {
+    return (
+      <section className="rounded-[24px] border border-[#e6ddd0] bg-[#f3eee6] p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-2xl font-black text-[#17150f]">Audit Trail</h2>
+          <span className="text-xs font-bold uppercase text-[#9a8e82]">{events.length} events</span>
+        </div>
+        <div className="mt-5 space-y-3">
+          {events.map((event) => (
+            <TimelineEventCard key={event.eventId} event={event} compact />
+          ))}
+        </div>
+        {nextCursor ? (
+          <Button variant="secondary" className="mt-5 w-full" onClick={onLoadMore} disabled={loadingMore}>
+            {loadingMore ? 'Loading events...' : 'Load more events'}
+          </Button>
+        ) : null}
+      </section>
+    )
+  }
+
   return (
     <section className="rounded-[8px] border border-orange-100 bg-orange-50/40 p-5">
       <div className="flex items-center justify-between">

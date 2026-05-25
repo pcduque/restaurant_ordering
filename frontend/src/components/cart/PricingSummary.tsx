@@ -6,13 +6,46 @@ import { Spinner } from '../ui/Spinner'
 interface PricingSummaryProps {
   pricing?: CartPricingResponse | null
   loading?: boolean
+  variant?: 'default' | 'checkout'
 }
 
-export function PricingSummary({ pricing, loading = false }: PricingSummaryProps) {
+export function PricingSummary({ pricing, loading = false, variant = 'default' }: PricingSummaryProps) {
   if (loading) {
     return (
       <Card className="p-5">
         <Spinner />
+      </Card>
+    )
+  }
+
+  if (variant === 'checkout') {
+    return (
+      <Card className="rounded-[28px] border-[#e7ded2] bg-white p-8 shadow-sm sm:p-12">
+        <h2 className="font-serif text-3xl font-black text-[#17150f]">Pricing summary</h2>
+        <p className="mt-2 text-sm font-bold uppercase text-[#a79c91]">Kitchen-ready audit</p>
+        <div className="mt-12 space-y-7 text-xl">
+          <div className="flex justify-between text-[#5f5149]">
+            <span>Subtotal</span>
+            <span className="font-bold text-[#17150f]">{formatMoney(pricing?.subtotalCents ?? 0)}</span>
+          </div>
+          <div className="flex justify-between text-[#5f5149]">
+            <span>Tax (8%)</span>
+            <span className="font-bold text-[#17150f]">{formatMoney(pricing?.taxCents ?? 0)}</span>
+          </div>
+          <div className="flex justify-between text-[#5f5149]">
+            <span>Service fee</span>
+            <span className="font-bold text-[#17150f]">{formatMoney(pricing?.serviceFeeCents ?? 0)}</span>
+          </div>
+          <div className="border-t border-dashed border-[#e6ddd0] pt-10">
+            <div className="flex items-end justify-between gap-6">
+              <div>
+                <p className="text-lg font-bold uppercase text-[#b7aca4]">Total</p>
+                <p className="mt-2 text-sm font-semibold text-[#b8320a]">Gratuity not included</p>
+              </div>
+              <p className="font-serif text-6xl font-black text-[#b8320a]">{formatMoney(pricing?.totalCents ?? 0)}</p>
+            </div>
+          </div>
+        </div>
       </Card>
     )
   }
