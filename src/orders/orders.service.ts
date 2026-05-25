@@ -133,6 +133,36 @@ export class OrdersService {
     return this.toOrderResponse(order);
   }
 
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+    user: AuthenticatedUser,
+  ) {
+    const currentOrder = await this.ordersRepository.findById(orderId);
+    if (!currentOrder || currentOrder.userId !== user.userId) {
+      throw new NotFoundException(`Order not found: ${orderId}`);
+    }
+
+    const updatedOrder = await this.ordersRepository.updateStatus(
+      orderId,
+      status,
+    );
+    if (!updatedOrder) {
+      throw new NotFoundException(`Order not found: ${orderId}`);
+    }
+
+    await this.timelineService.appendEvent({
+      orderId,
+      userId: user.userId,
+      type: TimelineEventType.ORDER_STATUS_CHANGED,
+      source: TimelineEventSource.API,
+      correlationId: uuidv4(),
+      payload: { from: currentOrder.status, to: status },
+    });
+
+    return this.toOrderResponse(updatedOrder);
+  }
+
   private toOrderResponse(order: Order) {
     return {
       orderId: order._id,

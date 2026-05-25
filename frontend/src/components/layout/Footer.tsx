@@ -4,7 +4,7 @@ export function Footer() {
       <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-8 lg:px-10">
         <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div>
-            <h2 className="font-serif text-xl font-bold">Lumière Dining</h2>
+            <h2 className="font-serif text-xl font-bold">SunDevs Restaurant Ordering</h2>
             <p className="mt-5 max-w-xs text-sm leading-6 text-[#aaa493]">
               Elevating the culinary experience through seasonal integrity, technical precision, and a commitment to the modern epicurean lifestyle.
             </p>
@@ -35,7 +35,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-7 text-[11px] uppercase text-[#8b8578] sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Lumière Dining Group. Designed for the discerning.</p>
+          <p>© 2026 SunDevs Restaurant Ordering. Designed for the discerning.</p>
           <p>Instagram · Journal · Membership</p>
         </div>
       </div>

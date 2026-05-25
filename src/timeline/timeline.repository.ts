@@ -46,4 +46,20 @@ export class TimelineRepository {
       .lean<TimelineEvent[]>()
       .exec();
   }
+
+  async findByUser(
+    userId: string,
+    pageSize: number,
+    cursor?: string,
+  ): Promise<TimelineEvent[]> {
+    const query = cursor
+      ? { userId, timestamp: { $lt: new Date(cursor) } }
+      : { userId };
+    return this.eventModel
+      .find(query)
+      .sort({ timestamp: -1 })
+      .limit(pageSize + 1)
+      .lean<TimelineEvent[]>()
+      .exec();
+  }
 }

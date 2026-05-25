@@ -74,7 +74,7 @@ export function CartPage() {
         <div className="flex flex-col gap-6 text-sm text-[#a79c91] sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#171913] font-serif font-black text-white">L</span>
-            <span className="font-serif text-2xl font-black text-[#17150f]">Lumière Dining</span>
+            <span className="font-serif text-2xl font-black text-[#17150f]">SunDevs Restaurant Ordering</span>
           </div>
           <div className="flex flex-wrap gap-8 font-bold uppercase">
             <span>Privacy</span>
@@ -82,7 +82,7 @@ export function CartPage() {
             <span>Sustainability</span>
             <span>Support</span>
           </div>
-          <span>© 2026 Lumière Dining Group. All rights reserved.</span>
+          <span>© 2026 SunDevs Restaurant Ordering. All rights reserved.</span>
         </div>
       </div>
     </div>

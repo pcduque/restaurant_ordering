@@ -2,43 +2,74 @@ import { Bike, Check, ConciergeBell, Home, Search, ShoppingBag, UserRound, Utens
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
-import { getOrder, getOrderTimeline } from '../api/orders.api'
+import { getOrder, getOrderTimeline, updateOrderStatus } from '../api/orders.api'
 import { TimelineList } from '../components/timeline/TimelineList'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Spinner } from '../components/ui/Spinner'
 import { useAuthStore } from '../store/auth.store'
-import type { Order } from '../types/order.types'
+import type { Order, OrderStatus } from '../types/order.types'
 import type { TimelineEvent } from '../types/timeline.types'
 import { formatDateTime } from '../utils/date'
 import { formatMoney } from '../utils/money'
 import { getProductImage } from '../utils/productImages'
 
-const trackingSteps = [
+const orderStatuses: OrderStatus[] = ['PLACED', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED']
+
+const statusLabels: Record<OrderStatus, string> = {
+  PLACED: 'Placed',
+  CONFIRMED: 'Confirmed',
+  PREPARING: 'Preparing',
+  READY: 'Ready',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+}
+
+const stepOrder: OrderStatus[] = ['PLACED', 'PREPARING', 'READY', 'COMPLETED']
+
+function getStepState(stepStatus: OrderStatus, currentStatus: OrderStatus) {
+  if (currentStatus === 'CANCELLED') {
+    return stepStatus === 'PLACED' ? 'done' : 'pending'
+  }
+
+  const currentIndex = stepOrder.indexOf(currentStatus === 'CONFIRMED' ? 'PLACED' : currentStatus)
+  const stepIndex = stepOrder.indexOf(stepStatus)
+  if (stepIndex < currentIndex) {
+    return 'done'
+  }
+  if (stepIndex === currentIndex) {
+    return currentStatus === 'COMPLETED' ? 'done' : 'active'
+  }
+  return 'pending'
+}
+
+function getTrackingSteps(currentStatus: OrderStatus) {
+  return [
   {
     title: 'Order Received',
     description: 'Confirmed and sent to the kitchen.',
-    state: 'done',
+    state: getStepState('PLACED', currentStatus),
     Icon: Check,
   },
   {
     title: 'Kitchen Preparing',
     description: 'Chef Antoine is crafting your signature dishes.',
-    state: 'active',
+    state: getStepState('PREPARING', currentStatus),
     Icon: Utensils,
   },
   {
     title: 'Out for Delivery',
-    description: 'Waiting for pickup...',
-    state: 'pending',
+    description: currentStatus === 'READY' ? 'Ready for pickup or delivery.' : 'Waiting for pickup...',
+    state: getStepState('READY', currentStatus),
     Icon: Bike,
   },
   {
     title: 'Delivered',
     description: 'Enjoy your gastronomic experience.',
-    state: 'pending',
+    state: getStepState('COMPLETED', currentStatus),
     Icon: Home,
   },
-] as const
+]
+}
 
 export function OrderStatusPage() {
   const { orderId = '' } = useParams()
@@ -48,6 +79,8 @@ export function OrderStatusPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [savingStatus, setSavingStatus] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PLACED')
   const [error, setError] = useState('')
 
   const loadOrder = useCallback(async () => {
@@ -56,6 +89,7 @@ export function OrderStatusPage() {
     try {
       const [orderResponse, timelineResponse] = await Promise.all([getOrder(orderId), getOrderTimeline(orderId)])
       setOrder(orderResponse)
+      setSelectedStatus(orderResponse.status)
       setEvents(timelineResponse.items)
       setNextCursor(timelineResponse.nextCursor)
     } catch (err) {
@@ -82,6 +116,27 @@ export function OrderStatusPage() {
     }
   }
 
+  async function saveStatus() {
+    if (!order || selectedStatus === order.status) {
+      return
+    }
+
+    setSavingStatus(true)
+    setError('')
+    try {
+      const updatedOrder = await updateOrderStatus(order.orderId, selectedStatus)
+      const timelineResponse = await getOrderTimeline(order.orderId)
+      setOrder(updatedOrder)
+      setSelectedStatus(updatedOrder.status)
+      setEvents(timelineResponse.items)
+      setNextCursor(timelineResponse.nextCursor)
+    } catch (err) {
+      setError(getApiErrorMessage(err))
+    } finally {
+      setSavingStatus(false)
+    }
+  }
+
   useEffect(() => {
     if (token) {
       void loadOrder()
@@ -101,16 +156,17 @@ export function OrderStatusPage() {
   }
 
   const shortOrderId = order.orderId.slice(0, 5).toUpperCase()
+  const trackingSteps = getTrackingSteps(order.status)
   return (
     <div className="-mx-4 -mt-8 bg-[#f7f1e6] sm:-mx-8 lg:-mx-10">
       <header className="border-b border-[#e6ddd0] bg-[#f7f1e6]/95 px-6 py-8 shadow-sm sm:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
           <Link to="/" className="font-serif text-3xl font-black text-[#a42d08]">
-            Lumière Dining
+            SunDevs Restaurant Ordering
           </Link>
           <nav className="hidden items-center gap-10 text-xl text-[#4f4a45] md:flex">
             <Link to="/">Menu</Link>
-            <span>Reservations</span>
+            <Link to="/orders">Orders</Link>
             <span>About</span>
           </nav>
           <div className="flex items-center gap-6">
@@ -178,7 +234,33 @@ export function OrderStatusPage() {
 
           <aside className="space-y-8">
             <div className="rounded-[24px] border border-[#dfd3c5] bg-[#eeeadf] p-9">
-              <h2 className="font-serif text-3xl font-black text-[#17150f]">Order Details</h2>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="font-serif text-3xl font-black text-[#17150f]">Order Details</h2>
+                  <p className="mt-2 text-sm font-bold uppercase text-[#a42d08]">Current status: {statusLabels[order.status]}</p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <select
+                    className="rounded-md border border-[#d7b9a8] bg-[#fbf6ec] px-3 py-2 text-sm font-bold text-[#17150f]"
+                    value={selectedStatus}
+                    onChange={(event) => setSelectedStatus(event.target.value as OrderStatus)}
+                  >
+                    {orderStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {statusLabels[status]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="rounded-md bg-[#ff5a00] px-4 py-2 text-sm font-black text-[#23140b] transition hover:bg-[#ef5200] disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    disabled={savingStatus || selectedStatus === order.status}
+                    onClick={saveStatus}
+                  >
+                    {savingStatus ? 'Updating...' : 'Change status'}
+                  </button>
+                </div>
+              </div>
               <div className="mt-8 space-y-8">
                 {order.items.map((item, index) => {
                   const line = order.pricing.items?.[index]
@@ -235,7 +317,7 @@ export function OrderStatusPage() {
       <footer className="mt-20 border-t border-[#dfd3c5] bg-[#e7e1d7] px-6 py-14 sm:px-10">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1fr_180px_180px]">
           <div>
-            <h2 className="font-serif text-3xl font-black text-[#a42d08]">Lumière Gastronomy</h2>
+            <h2 className="font-serif text-3xl font-black text-[#a42d08]">SunDevs Restaurant Ordering</h2>
             <p className="mt-4 max-w-sm text-xl leading-8 text-[#5f5a54]">Refining the art of digital dining with precision, warmth, and flavor.</p>
           </div>
           <div className="space-y-4 text-xl text-[#5f5a54]">
@@ -249,7 +331,7 @@ export function OrderStatusPage() {
             <p>Locations</p>
           </div>
         </div>
-        <p className="mt-12 text-center text-sm text-[#6d665f]">© 2026 Lumière Gastronomy. All rights reserved.</p>
+        <p className="mt-12 text-center text-sm text-[#6d665f]">© 2026 SunDevs Restaurant Ordering. All rights reserved.</p>
       </footer>
     </div>
   )
