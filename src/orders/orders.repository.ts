@@ -5,7 +5,9 @@ import { Order, OrderDocument } from './schemas/order.schema';
 
 @Injectable()
 export class OrdersRepository {
-  constructor(@InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>) {}
+  constructor(
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+  ) {}
 
   create(order: Order): Promise<Order> {
     return this.orderModel.create(order);
@@ -13,5 +15,13 @@ export class OrdersRepository {
 
   findById(orderId: string): Promise<Order | null> {
     return this.orderModel.findById(orderId).lean<Order>().exec();
+  }
+
+  findByUser(userId: string): Promise<Order[]> {
+    return this.orderModel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .lean<Order[]>()
+      .exec();
   }
 }

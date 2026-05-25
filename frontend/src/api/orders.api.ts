@@ -15,6 +15,11 @@ export async function getOrder(orderId: string): Promise<Order> {
   return response.data
 }
 
+export async function listOrders(): Promise<Order[]> {
+  const response = await apiClient.get<Order[]>('/orders')
+  return response.data
+}
+
 export async function getOrderTimeline(orderId: string, cursor?: string): Promise<TimelinePage> {
   const response = await apiClient.get<TimelinePage>(`/orders/${orderId}/timeline`, {
     params: { pageSize: 20, cursor },

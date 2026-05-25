@@ -20,6 +20,7 @@ src/
   common/      shared constants, enums, interceptors, utilities
   menu/        menu API, product schema, seed data
   cart/        pricing API and pricing business rules
+  auth/        lightweight username/password sessions
   orders/      order API, idempotency, order persistence
   timeline/    append-only audit events and cursor pagination
   database/    MongoDB module and seed script
@@ -30,8 +31,10 @@ src/
 - Money is always calculated in integer cents.
 - Tax and service fee live in `src/common/constants/money.constants.ts`.
 - The backend never accepts client-provided totals.
-- Orders use a mock user: `mock-user-1`.
-- `Idempotency-Key` is required for `POST /orders` and persisted with a unique MongoDB index.
+- Users authenticate with username/password against MongoDB and receive a simple Bearer token.
+- `npm run seed` ensures a demo user exists: `demo` / `demo1234`.
+- Orders and timeline events are scoped to the authenticated user.
+- `Idempotency-Key` is required for `POST /orders` and persisted with a unique MongoDB index per user.
 - Timeline events are append-only and deduplicated with a unique `eventId` index.
 - Timeline payloads are rejected before persistence when JSON size exceeds 16KB.
 - Request logging masks emails and phone numbers before printing request bodies.
@@ -88,6 +91,10 @@ npm run test:watch
 
 - `GET /menu`
 - `POST /cart/pricing`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
+- `GET /orders`
 - `POST /orders`
 - `GET /orders/:orderId`
 - `GET /orders/:orderId/timeline?pageSize=20&cursor=...`
@@ -120,11 +127,20 @@ curl -X POST http://localhost:4000/cart/pricing \
   }'
 ```
 
+Login:
+
+```bash
+curl -X POST http://localhost:4000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "demo", "password": "demo1234" }'
+```
+
 Create order:
 
 ```bash
 curl -X POST http://localhost:4000/orders \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer REPLACE_WITH_TOKEN" \
   -H "Idempotency-Key: test-key-123" \
   -d '{
     "items": [
@@ -144,13 +160,15 @@ curl -X POST http://localhost:4000/orders \
 Get order:
 
 ```bash
-curl http://localhost:4000/orders/REPLACE_WITH_ORDER_ID
+curl http://localhost:4000/orders/REPLACE_WITH_ORDER_ID \
+  -H "Authorization: Bearer REPLACE_WITH_TOKEN"
 ```
 
 Get timeline:
 
 ```bash
-curl "http://localhost:4000/orders/REPLACE_WITH_ORDER_ID/timeline?pageSize=20"
+curl "http://localhost:4000/orders/REPLACE_WITH_ORDER_ID/timeline?pageSize=20" \
+  -H "Authorization: Bearer REPLACE_WITH_TOKEN"
 ```
 
 ## Acceptance Checklist

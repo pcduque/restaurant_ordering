@@ -1,11 +1,12 @@
 import { Bike, Check, ConciergeBell, Home, Search, ShoppingBag, UserRound, Utensils } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getOrder, getOrderTimeline } from '../api/orders.api'
 import { TimelineList } from '../components/timeline/TimelineList'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Spinner } from '../components/ui/Spinner'
+import { useAuthStore } from '../store/auth.store'
 import type { Order } from '../types/order.types'
 import type { TimelineEvent } from '../types/timeline.types'
 import { formatDateTime } from '../utils/date'
@@ -41,6 +42,7 @@ const trackingSteps = [
 
 export function OrderStatusPage() {
   const { orderId = '' } = useParams()
+  const token = useAuthStore((state) => state.token)
   const [order, setOrder] = useState<Order | null>(null)
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
@@ -81,8 +83,14 @@ export function OrderStatusPage() {
   }
 
   useEffect(() => {
-    void loadOrder()
-  }, [loadOrder])
+    if (token) {
+      void loadOrder()
+    }
+  }, [loadOrder, token])
+
+  if (!token) {
+    return <Navigate to={`/login?redirectTo=/orders/${orderId}`} replace />
+  }
 
   if (loading) {
     return <Spinner />

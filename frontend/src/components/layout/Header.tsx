@@ -1,10 +1,13 @@
-import { ShoppingBag, UserRound } from 'lucide-react'
+import { LogOut, ShoppingBag, UserRound } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
+import { useAuthStore } from '../../store/auth.store'
 import { useCartStore } from '../../store/cart.store'
 import { formatMoney } from '../../utils/money'
 
 export function Header() {
   const items = useCartStore((state) => state.items)
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
   const count = items.reduce((sum, item) => sum + item.quantity, 0)
   const estimate = items.reduce(
     (sum, item) =>
@@ -55,9 +58,35 @@ export function Header() {
             <span>{count}</span>
             <span className="hidden sm:inline">{formatMoney(estimate)}</span>
           </NavLink>
-          <span className="hidden h-9 w-9 items-center justify-center rounded-full border border-[#d8cebc] text-[#6d665a] sm:flex">
-            <UserRound className="h-4 w-4" />
-          </span>
+          {user ? (
+            <>
+              <NavLink
+                to="/orders"
+                className={({ isActive }) =>
+                  `hidden items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold sm:inline-flex ${isActive ? 'border-[#a42d08] text-[#a42d08]' : 'border-[#d8cebc] text-[#6d665a] hover:text-[#a42d08]'}`
+                }
+              >
+                <UserRound className="h-4 w-4" />
+                {user.username}
+              </NavLink>
+              <button
+                className="hidden h-9 w-9 items-center justify-center rounded-full border border-[#d8cebc] text-[#6d665a] hover:text-[#a42d08] sm:flex"
+                type="button"
+                title="Logout"
+                onClick={logout}
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <NavLink
+              to="/login"
+              className="hidden h-9 w-9 items-center justify-center rounded-full border border-[#d8cebc] text-[#6d665a] hover:text-[#a42d08] sm:flex"
+              title="Login"
+            >
+              <UserRound className="h-4 w-4" />
+            </NavLink>
+          )}
         </div>
       </div>
     </header>

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
 import { DatabaseModule } from './database/database.module';
 import { MenuModule } from './menu/menu.module';
@@ -12,6 +13,7 @@ import { TimelineModule } from './timeline/timeline.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    AuthModule,
     MenuModule,
     CartModule,
     OrdersModule,

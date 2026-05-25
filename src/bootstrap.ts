@@ -28,12 +28,24 @@ export function configureApp(app: INestApplication): void {
     }),
   );
   app.useGlobalInterceptors(new MaskedLoggingInterceptor());
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Restaurant Ordering API')
-    .setDescription('Restaurant ordering backend with cart pricing and order timeline audit trail.')
+    .setDescription(
+      'Restaurant ordering backend with cart pricing and order timeline audit trail.',
+    )
     .setVersion('1.0.0')
-    .addApiKey({ type: 'apiKey', name: 'Idempotency-Key', in: 'header' }, 'Idempotency-Key')
+    .addApiKey(
+      { type: 'apiKey', name: 'Idempotency-Key', in: 'header' },
+      'Idempotency-Key',
+    )
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

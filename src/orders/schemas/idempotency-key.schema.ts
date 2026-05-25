@@ -5,7 +5,7 @@ export type IdempotencyKeyDocument = HydratedDocument<IdempotencyKey>;
 
 @Schema({ timestamps: true })
 export class IdempotencyKey {
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, index: true })
   key: string;
 
   @Prop({ required: true, index: true })
@@ -18,4 +18,6 @@ export class IdempotencyKey {
   correlationId?: string;
 }
 
-export const IdempotencyKeySchema = SchemaFactory.createForClass(IdempotencyKey);
+export const IdempotencyKeySchema =
+  SchemaFactory.createForClass(IdempotencyKey);
+IdempotencyKeySchema.index({ key: 1, userId: 1 }, { unique: true });

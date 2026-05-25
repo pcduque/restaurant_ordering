@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createOrder } from '../../api/orders.api'
 import { getApiErrorMessage } from '../../api/client'
+import { useAuthStore } from '../../store/auth.store'
 import { useCartStore } from '../../store/cart.store'
 import { createIdempotencyKey } from '../../utils/idempotency'
 import { Button } from '../ui/Button'
@@ -18,9 +19,15 @@ export function CheckoutPanel({ disabled = false, variant = 'default' }: Checkou
   const [error, setError] = useState('')
   const toPricingRequest = useCartStore((state) => state.toPricingRequest)
   const clearCart = useCartStore((state) => state.clearCart)
+  const token = useAuthStore((state) => state.token)
   const navigate = useNavigate()
 
   async function checkout() {
+    if (!token) {
+      navigate('/login?redirectTo=/cart')
+      return
+    }
+
     setLoading(true)
     setError('')
     try {
