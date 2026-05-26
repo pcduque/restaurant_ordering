@@ -1,6 +1,6 @@
-import { Bike, Check, ConciergeBell, Home, Search, ShoppingBag, UserRound, Utensils } from 'lucide-react'
+import { Bike, Check, ConciergeBell, Home, Utensils } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getOrder, getOrderTimeline, updateOrderStatus } from '../api/orders.api'
 import { OrderNotFoundScreen } from '../components/orders/OrderNotFoundScreen'
@@ -159,27 +159,6 @@ export function OrderStatusPage() {
   const trackingSteps = getTrackingSteps(order.status)
   return (
     <div className="-mx-4 -mt-8 bg-[#f7f1e6] sm:-mx-8 lg:-mx-10">
-      <header className="border-b border-[#e6ddd0] bg-[#f7f1e6]/95 px-6 py-8 shadow-sm sm:px-10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-          <Link to="/" className="font-serif text-3xl font-black text-[#a42d08]">
-            SunDevs Restaurant Ordering
-          </Link>
-          <nav className="hidden items-center gap-10 text-xl text-[#4f4a45] md:flex">
-            <Link to="/">Menu</Link>
-            <Link to="/orders">Orders</Link>
-            <span>About</span>
-          </nav>
-          <div className="flex items-center gap-6">
-            <div className="hidden items-center gap-3 rounded-full border border-[#ddb9a7] px-6 py-4 text-lg text-[#687086] lg:flex">
-              <Search className="h-5 w-5 text-[#4f4a45]" />
-              Search orders...
-            </div>
-            <ShoppingBag className="h-6 w-6 text-[#4f4a45]" />
-            <UserRound className="h-6 w-6 text-[#4f4a45]" />
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-5xl px-6 py-16 sm:px-10">
         <div className="mb-14 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>

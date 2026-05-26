@@ -139,13 +139,13 @@ export function MenuPage() {
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(177,80,30,0.24),transparent_34rem)]" />
           <div className="relative flex min-h-[540px] flex-col items-center justify-center px-8 py-16 text-center text-white">
-            <p className="text-[11px] font-black uppercase text-[#c84a18]">The modern epicurean experience</p>
+            <p className="text-sm font-black uppercase text-[#c84a18]">The modern epicurean experience</p>
             <h1 className="mt-6 max-w-4xl font-serif text-5xl font-black leading-none sm:text-7xl lg:text-8xl">
               Build the order,
               <br />
               <span className="italic">verify the audit trail.</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-[#fff4e0]">
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#fff4e0]">
               Browse the menu, customize dishes, price the cart server-side, and inspect every order event after checkout.
             </p>
           </div>
@@ -158,8 +158,8 @@ export function MenuPage() {
             <div className="mb-10 flex items-center gap-5">
               <h2 className="font-serif text-4xl font-black text-[#17150f]">Signature Dishes</h2>
               <div className="h-px flex-1 bg-[#e7dece]" />
-              <Button onClick={() => setCreatingProduct(true)} className="shrink-0 bg-[#b8320a] hover:bg-[#8f2708]">
-                <Plus className="h-4 w-4" />
+              <Button onClick={() => setCreatingProduct(true)} className="shrink-0 bg-[#b8320a] text-base hover:bg-[#8f2708]">
+                <Plus className="h-5 w-5" />
                 Add product
               </Button>
             </div>
@@ -170,9 +170,9 @@ export function MenuPage() {
                 <div className="mb-8 flex items-center gap-5">
                   <h2 className="font-serif text-2xl font-black text-[#17150f]">Event Audit Trail</h2>
                   <div className="h-px flex-1 bg-[#e7dece]" />
-                  <span className="hidden text-[10px] font-bold uppercase text-[#b8b0a2] sm:inline">Live server stream</span>
+                  <span className="hidden text-xs font-bold uppercase text-[#b8b0a2] sm:inline">Live server stream</span>
                 </div>
-                <div className="overflow-x-auto rounded-[8px] border border-[#eadfce] bg-white p-6 font-mono text-xs shadow-sm">
+                <div className="overflow-x-auto rounded-[8px] border border-[#eadfce] bg-white p-6 font-mono text-sm shadow-sm">
                   <div className="mb-5 flex gap-2">
                     <span className="h-2 w-2 rounded-full bg-red-200" />
                     <span className="h-2 w-2 rounded-full bg-yellow-200" />

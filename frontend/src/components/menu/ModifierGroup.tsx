@@ -28,20 +28,20 @@ export function ModifierGroup({ group, selectedOptionIds, onChange }: ModifierGr
   }
 
   return (
-    <section className="rounded-[8px] border border-orange-100 p-4">
+    <section className="rounded-[8px] border border-[#eee6dc] bg-[#fbf8f2] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-bold text-slate-950">{group.name}</h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="font-serif text-lg font-black leading-none text-[#17150f]">{group.name}</h3>
+          <p className="mt-1 text-[11px] font-bold text-[#a69b8f]">
             {group.required ? 'Required' : 'Optional'} · choose {group.minSelections === group.maxSelections ? group.maxSelections : `up to ${group.maxSelections}`}
           </p>
         </div>
-        <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-700">
+        <span className="rounded-[6px] border border-[#efd8c8] bg-[#fff7ef] px-2.5 py-1 text-[11px] font-black text-[#ff5a00]">
           {selectedOptionIds.length}/{group.maxSelections}
         </span>
       </div>
 
-      <div className="mt-4 grid gap-2">
+      <div className="mt-4 grid gap-3">
         {group.options.map((option) => {
           const checked = selectedSet.has(option.id)
           const disabled = !checked && selectedOptionIds.length >= group.maxSelections
@@ -49,22 +49,22 @@ export function ModifierGroup({ group, selectedOptionIds, onChange }: ModifierGr
           return (
             <label
               key={option.id}
-              className={`flex cursor-pointer items-center justify-between rounded-[8px] border px-3 py-3 transition ${
-                checked ? 'border-orange-500 bg-orange-50' : disabled ? 'border-slate-100 bg-slate-50 text-slate-400' : 'border-slate-200 hover:border-orange-200'
+              className={`flex min-h-12 cursor-pointer items-center justify-between rounded-[6px] border bg-white px-4 py-3 shadow-sm transition ${
+                checked ? 'border-[#ff5a00] text-[#17150f]' : disabled ? 'border-[#eee6dc] text-[#b8ada2] opacity-70' : 'border-[#eee6dc] text-[#5f5a54] hover:border-[#efcbb6]'
               }`}
             >
               <span className="flex items-center gap-3">
                 <input
-                  className="h-4 w-4 accent-orange-600"
+                  className="h-4 w-4 accent-[#ff5a00]"
                   type={isSingle ? 'radio' : 'checkbox'}
                   name={group.id}
                   checked={checked}
                   disabled={disabled}
                   onChange={() => toggleOption(option.id)}
                 />
-                <span className="text-sm font-semibold">{option.name}</span>
+                <span className="text-sm font-bold">{option.name}</span>
               </span>
-              <span className="text-sm font-semibold text-slate-600">
+              <span className="text-xs font-black text-[#9a8e82]">
                 {option.priceCents > 0 ? `+${formatMoney(option.priceCents)}` : 'Included'}
               </span>
             </label>

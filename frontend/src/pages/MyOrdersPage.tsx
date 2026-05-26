@@ -1,4 +1,4 @@
-import { ChevronDown, Heart, History, RotateCcw, Settings, ShoppingBag, SlidersHorizontal, UserRound } from 'lucide-react'
+import { ChevronDown, History, RotateCcw, Search, ShoppingBag, SlidersHorizontal, UserRound } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
@@ -35,6 +35,7 @@ export function MyOrdersPage() {
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
   const [orders, setOrders] = useState<Order[]>([])
+  const [searchOrderId, setSearchOrderId] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -68,12 +69,26 @@ export function MyOrdersPage() {
     return <ErrorState message={error} onRetry={loadOrders} />
   }
 
+  const normalizedSearch = searchOrderId.trim().toLowerCase()
+  const visibleOrders = normalizedSearch
+    ? orders.filter((order) => order.orderId.toLowerCase().includes(normalizedSearch) || order.orderId.slice(0, 8).toLowerCase().includes(normalizedSearch))
+    : orders
+
   return (
     <div className="-mx-4 -mt-8 min-h-[calc(100vh-64px)] bg-[#f8f1e6] px-5 py-8 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-10">
           <h1 className="font-serif text-4xl font-black leading-tight text-[#11100d] sm:text-5xl">Your Gastronomic Journey</h1>
           <p className="mt-2 text-sm text-[#7b7268]">Revisit your favorite memories and upcoming experiences.</p>
+          <label className="mt-6 flex max-w-xl items-center gap-3 rounded-full border border-[#ddb9a7] bg-[#fbf6ec] px-5 py-4 text-[#687086] shadow-sm">
+            <Search className="h-5 w-5 shrink-0 text-[#4f4a45]" />
+            <input
+              className="w-full bg-transparent text-base font-medium text-[#17150f] outline-none placeholder:text-[#8f857a]"
+              placeholder="Search by order ID..."
+              value={searchOrderId}
+              onChange={(event) => setSearchOrderId(event.target.value)}
+            />
+          </label>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[285px_1fr]">
@@ -93,14 +108,6 @@ export function MyOrdersPage() {
                 <span>Order History</span>
                 <History className="h-4 w-4" />
               </Link>
-              <Link className="flex items-center justify-between rounded-md px-4 py-4 text-[#4f463d] hover:bg-[#f7efe3]" to="/">
-                <span>Saved Dishes</span>
-                <Heart className="h-4 w-4" />
-              </Link>
-              <button className="flex w-full items-center justify-between rounded-md px-4 py-4 text-left text-[#4f463d] hover:bg-[#f7efe3]" type="button">
-                <span>Settings</span>
-                <Settings className="h-4 w-4" />
-              </button>
             </nav>
           </aside>
 
@@ -113,9 +120,15 @@ export function MyOrdersPage() {
                   Start ordering
                 </Link>
               </div>
+            ) : visibleOrders.length === 0 ? (
+              <div className="rounded-lg border border-[#dfd3c5] bg-[#fbf6ec] p-12 text-center shadow-sm">
+                <Search className="mx-auto h-11 w-11 text-[#a42d08]" />
+                <h2 className="mt-4 font-serif text-3xl font-black text-[#17150f]">No matching orders</h2>
+                <p className="mt-3 text-sm text-[#7b7268]">Try another order ID or clear the search.</p>
+              </div>
             ) : (
               <div className="space-y-7">
-                {orders.map((order) => {
+                {visibleOrders.map((order) => {
                   const shortOrderId = order.orderId.slice(0, 8).toUpperCase()
                   const isActive = !['COMPLETED', 'CANCELLED'].includes(order.status)
 
@@ -146,7 +159,7 @@ export function MyOrdersPage() {
                             View Details
                           </Link>
                           {isActive ? (
-                            <Link className="rounded-md bg-[#5a5b61] px-5 py-2 text-sm font-black text-white hover:bg-[#3f4045]" to={`/orders/${order.orderId}`}>
+                            <Link className="rounded-md bg-[#5a5b61] px-5 py-2 text-sm font-black text-white hover:bg-[#3f4045]" to={`/orders/${order.orderId}/timeline`}>
                               Track Status
                             </Link>
                           ) : (
