@@ -1,10 +1,14 @@
+import { Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getMenu } from '../api/menu.api'
 import { getMyTimeline } from '../api/timeline.api'
 import { CartDrawer } from '../components/cart/CartDrawer'
+import { ProductCreateModal } from '../components/menu/ProductCreateModal'
 import { ProductCustomizeModal } from '../components/menu/ProductCustomizeModal'
 import { ProductGrid } from '../components/menu/ProductGrid'
+import { Button } from '../components/ui/Button'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Spinner } from '../components/ui/Spinner'
 import { useAuthStore } from '../store/auth.store'
@@ -58,9 +62,11 @@ function formatEventPayload(event: TimelineEvent) {
 }
 
 export function MenuPage() {
+  const navigate = useNavigate()
   const token = useAuthStore((state) => state.token)
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [creatingProduct, setCreatingProduct] = useState(false)
   const [auditEvents, setAuditEvents] = useState<TimelineEvent[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditError, setAuditError] = useState('')
@@ -152,8 +158,12 @@ export function MenuPage() {
             <div className="mb-10 flex items-center gap-5">
               <h2 className="font-serif text-4xl font-black text-[#17150f]">Signature Dishes</h2>
               <div className="h-px flex-1 bg-[#e7dece]" />
+              <Button onClick={() => setCreatingProduct(true)} className="shrink-0 bg-[#b8320a] hover:bg-[#8f2708]">
+                <Plus className="h-4 w-4" />
+                Add product
+              </Button>
             </div>
-            <ProductGrid products={signatureProducts} onAdd={handleAdd} />
+            <ProductGrid products={signatureProducts} onAdd={handleAdd} onOpen={(product) => navigate(`/products/${product.id}`)} />
 
             {token ? (
               <section className="mt-28">
@@ -191,7 +201,7 @@ export function MenuPage() {
                 <div className="h-px flex-1 bg-[#e7dece]" />
               </div>
               {smallPlates.length > 0 ? (
-                <ProductGrid products={smallPlates} onAdd={handleAdd} />
+                <ProductGrid products={smallPlates} onAdd={handleAdd} onOpen={(product) => navigate(`/products/${product.id}`)} />
               ) : (
                 <div className="rounded-[18px] border border-dashed border-[#d8cebc] p-20 text-center font-serif italic text-[#9d978b]">
                   Chef's seasonal selections arriving shortly...
@@ -205,6 +215,14 @@ export function MenuPage() {
       <CartDrawer />
 
       <ProductCustomizeModal product={selectedProduct} open={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} />
+      <ProductCreateModal
+        open={creatingProduct}
+        onClose={() => setCreatingProduct(false)}
+        onCreated={(product) => {
+          setProducts((current) => [...current, product])
+          navigate(`/products/${product.id}`)
+        }}
+      />
     </div>
   )
 }

@@ -8,14 +8,26 @@ import { Card } from '../ui/Card'
 interface ProductCardProps {
   product: Product
   onAdd: (product: Product) => void
+  onOpen: (product: Product) => void
 }
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
+export function ProductCard({ product, onAdd, onOpen }: ProductCardProps) {
   const customizable = product.modifierGroups.length > 0
   const imageUrl = getProductImage(product.id)
 
   return (
-    <Card className="group overflow-hidden border-[#eadfce] bg-white shadow-[0_18px_50px_rgba(69,48,27,0.08)]">
+    <Card
+      className="group cursor-pointer overflow-hidden border-[#eadfce] bg-white shadow-[0_18px_50px_rgba(69,48,27,0.08)] transition hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(69,48,27,0.14)]"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(product)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(product)
+        }
+      }}
+    >
       <div className="relative h-56 overflow-hidden bg-[#f3efe7]">
         <img
           src={imageUrl}
@@ -40,7 +52,10 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
             {customizable ? `${product.modifierGroups.length} modifier groups` : 'Ready to add'}
           </span>
           <Button
-            onClick={() => onAdd(product)}
+            onClick={(event) => {
+              event.stopPropagation()
+              onAdd(product)
+            }}
             className={`min-h-9 shrink-0 px-5 py-2 text-[11px] ${customizable ? 'bg-[#17150f] hover:bg-[#2c2922]' : 'bg-[#b8320a] hover:bg-[#8f2708]'}`}
           >
             {customizable ? 'Customize' : 'Add to Order'}

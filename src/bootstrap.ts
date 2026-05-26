@@ -32,7 +32,7 @@ export function configureApp(app: INestApplication): void {
     origin: true,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   const config = new DocumentBuilder()
