@@ -13,6 +13,11 @@ export function ModifierGroup({ group, selectedOptionIds, onChange }: ModifierGr
 
   function toggleOption(optionId: string) {
     if (isSingle) {
+      if (!group.required && selectedSet.has(optionId)) {
+        onChange([])
+        return
+      }
+
       onChange([optionId])
       return
     }
@@ -44,7 +49,7 @@ export function ModifierGroup({ group, selectedOptionIds, onChange }: ModifierGr
       <div className="mt-4 grid gap-3">
         {group.options.map((option) => {
           const checked = selectedSet.has(option.id)
-          const disabled = !checked && selectedOptionIds.length >= group.maxSelections
+          const disabled = !isSingle && !checked && selectedOptionIds.length >= group.maxSelections
 
           return (
             <label
