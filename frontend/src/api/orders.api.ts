@@ -1,9 +1,9 @@
 import { apiClient } from './client'
-import type { CartPricingRequest } from '../types/cart.types'
+import type { CreateOrderRequest } from '../types/cart.types'
 import type { CreateOrderResponse, Order, OrderStatus } from '../types/order.types'
 import type { TimelinePage } from '../types/timeline.types'
 
-export async function createOrder(payload: CartPricingRequest, idempotencyKey: string): Promise<CreateOrderResponse> {
+export async function createOrder(payload: CreateOrderRequest, idempotencyKey: string): Promise<CreateOrderResponse> {
   const response = await apiClient.post<CreateOrderResponse>('/orders', payload, {
     headers: { 'Idempotency-Key': idempotencyKey },
   })

@@ -33,7 +33,7 @@ export function CartDrawer() {
   }, [loadPricing])
 
   return (
-    <Card className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[18px] border-0 bg-white p-8 shadow-[0_30px_70px_rgba(69,48,27,0.18)] lg:block">
+    <Card className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[18px] border-0 bg-white p-7 shadow-[0_30px_70px_rgba(69,48,27,0.18)] xl:block">
       <div className="flex items-center justify-between">
         <h2 className="font-serif text-2xl font-bold text-[#17150f]">Current Cart</h2>
         <span className="text-[10px] font-bold uppercase text-[#b8b0a2]">{items.length} selection</span>

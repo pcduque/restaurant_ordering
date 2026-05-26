@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { BadRequestException } from '@nestjs/common';
 import { MENU_PRODUCTS } from '../menu/menu.seed-data';
 import { PricingService } from './pricing.service';
 
 describe('PricingService', () => {
   const menuRepository = {
-    findByIds: jest.fn(async (ids: string[]) => MENU_PRODUCTS.filter((product) => ids.includes(product._id))),
+    findByIds: jest.fn(async (ids: string[]) =>
+      MENU_PRODUCTS.filter((product) => ids.includes(product._id)),
+    ),
   };
   const service = new PricingService(menuRepository as never);
 

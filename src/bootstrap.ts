@@ -33,14 +33,16 @@ export function configureApp(app: INestApplication): void {
   );
 
   app.use((request: Request, _response: Response, next: NextFunction) => {
+    const requestWithBody = request as { body: unknown };
+    const requestBody = requestWithBody.body;
     const body =
-      Buffer.isBuffer(request.body) || ArrayBuffer.isView(request.body)
-        ? Buffer.from(request.body as Uint8Array).toString('utf8')
-        : request.body;
+      Buffer.isBuffer(requestBody) || ArrayBuffer.isView(requestBody)
+        ? Buffer.from(requestBody as Uint8Array).toString('utf8')
+        : requestBody;
 
     if (typeof body === 'string' && body.length > 0) {
       try {
-        request.body = JSON.parse(body);
+        requestWithBody.body = JSON.parse(body) as unknown;
       } catch {
         // Let validation report the malformed body.
       }

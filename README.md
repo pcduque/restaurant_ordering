@@ -1,93 +1,161 @@
 # Restaurant Ordering + Order Timeline
 
-NestJS backend for a restaurant ordering technical test. It exposes a menu, server-side cart pricing, idempotent order creation, order lookup, and an append-only order timeline audit trail.
+Prueba tecnica de pedidos para restaurante. Incluye backend NestJS, frontend React/Vite, MongoDB local, autenticacion simple, pricing server-side, checkout idempotente y un Order Timeline auditable.
 
-## Tech Stack
+## Links
 
-- NestJS + TypeScript
-- MongoDB + Mongoose
-- Docker Compose for local MongoDB
-- Serverless Framework + serverless-offline
-- Jest
-- Swagger/OpenAPI at `/docs`
+- Repositorio: [pcduque/restaurant_ordering](https://github.com/pcduque/restaurant_ordering)
+- Referencia visual: [Google Stitch](https://stitch.withgoogle.com/projects/2894040620266345089)
+- API Docs local: [http://localhost:4000/docs](http://localhost:4000/docs)
+- Frontend local: [http://localhost:5173](http://localhost:5173)
 
-## Architecture
-
-The project is a modular monolith split by domain. Controllers stay thin, services contain business rules, and repositories own database access.
-
-```text
-src/
-  common/      shared constants, enums, interceptors, utilities
-  menu/        menu API, product schema, seed data
-  cart/        pricing API and pricing business rules
-  auth/        lightweight username/password sessions
-  orders/      order API, idempotency, order persistence
-  timeline/    append-only audit events and cursor pagination
-  database/    MongoDB module and seed script
-```
-
-## Technical Decisions
-
-- Money is always calculated in integer cents.
-- Tax and service fee live in `src/common/constants/money.constants.ts`.
-- The backend never accepts client-provided totals.
-- Users authenticate with username/password against MongoDB and receive a simple Bearer token.
-- `npm run seed` ensures a demo user exists: `demo` / `demo1234`.
-- Orders and timeline events are scoped to the authenticated user.
-- `Idempotency-Key` is required for `POST /orders` and persisted with a unique MongoDB index per user.
-- Timeline events are append-only and deduplicated with a unique `eventId` index.
-- Timeline payloads are rejected before persistence when JSON size exceeds 16KB.
-- Request logging masks emails and phone numbers before printing request bodies.
-
-## Prerequisites
+## Requisitos
 
 - Node.js 20+
 - npm
 - Docker Desktop
 
-## Setup
+## Correr localmente
+
+Desde una maquina limpia:
 
 ```bash
+git clone https://github.com/pcduque/restaurant_ordering.git
+cd restaurant_ordering
 npm install
 cp .env.example .env
 docker compose up -d
 npm run seed
-```
-
-## Run Locally
-
-Regular Nest development server:
-
-```bash
-npm run start:dev
-```
-
-Serverless offline API on port `4000`:
-
-```bash
 npm run start:offline
 ```
 
-Swagger docs:
+En Windows PowerShell, si `cp` no esta disponible:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+La API queda en:
+
+```text
+http://localhost:4000
+```
+
+Swagger queda en:
 
 ```text
 http://localhost:4000/docs
 ```
 
-## Test
+En otra terminal, correr el frontend:
 
 ```bash
-npm test
-npm run test:watch
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-## Ports
+En Windows PowerShell:
 
-- API with serverless-offline: `4000`
+```powershell
+Copy-Item .env.example .env
+```
+
+Abrir:
+
+```text
+http://localhost:5173
+```
+
+Usuario demo:
+
+```text
+username: demo
+password: demo1234
+```
+
+## Orden de arranque
+
+1. `docker compose up -d`
+2. `npm run seed`
+3. `npm run start:offline`
+4. `cd frontend && npm run dev`
+
+## Variables de entorno
+
+Backend `.env` en la raiz:
+
+```env
+MONGODB_URI=mongodb://localhost:27017/restaurant_ordering
+PORT=4000
+NODE_ENV=development
+```
+
+- Requerida: `MONGODB_URI`
+- Opcionales: `PORT`, `NODE_ENV`, `SEED_USERNAME`, `SEED_PASSWORD`
+- Defaults: `PORT=4000`, `NODE_ENV=development`, `SEED_USERNAME=demo`, `SEED_PASSWORD=demo1234`
+
+Frontend `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+- Requerida: `VITE_API_BASE_URL`
+
+## Puertos
+
+- Backend API: `4000`
+- Frontend Vite: `5173`
 - MongoDB: `27017`
 - Swagger: `/docs`
 
-## API Endpoints
+## Scripts
+
+Backend:
+
+```bash
+npm run start:offline   # API con serverless-offline en puerto 4000
+npm run start:dev       # Nest en modo watch
+npm run seed            # menu demo + usuario demo
+npm test
+npm run build
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run dev
+npm run build
+npm run lint
+```
+
+## Validacion rapida
+
+```bash
+npm test
+npm run build
+cd frontend
+npm run build
+npm run lint
+```
+
+Los tests backend no requieren MongoDB ni seed; usan mocks/unit tests.
+
+## Flujo para revisar
+
+1. Login con `demo` / `demo1234`.
+2. Agregar productos al carrito, editar cantidades y remover algun item.
+3. Revisar el pricing calculado por el backend en el carrito.
+4. Completar checkout.
+5. Abrir el detalle de la orden en `/orders/:orderId`.
+6. Usar el boton `View full timeline`.
+7. Revisar eventos ordenados por timestamp y payload expandible.
+8. Usar `Back to order` para volver al detalle.
+
+## Endpoints principales
 
 - `GET /menu`
 - `POST /cart/pricing`
@@ -99,85 +167,42 @@ npm run test:watch
 - `GET /orders/:orderId`
 - `GET /orders/:orderId/timeline?pageSize=20&cursor=...`
 
-## Example cURL
+## Stack
 
-Get menu:
+- Backend: NestJS, TypeScript, MongoDB, Mongoose, Serverless Framework, Jest, Swagger/OpenAPI
+- Frontend: React, Vite, TypeScript, Tailwind CSS, Zustand, Axios, React Router
+- Infra local: Docker Compose para MongoDB
 
-```bash
-curl http://localhost:4000/menu
-```
+## Cobertura del reto
 
-Price cart:
+- Menu: `npm run seed` carga 7 productos.
+- Modificadores: 2 productos soportan `Protein`, `Toppings` y `Sauces`.
+- Cart: permite agregar, editar, remover y recalcular precios desde la API.
+- Checkout: `POST /orders` responde `202 Accepted` y soporta `Idempotency-Key`.
+- Timeline: persiste `CART_ITEM_ADDED`, `CART_ITEM_UPDATED`, `CART_ITEM_REMOVED`, `PRICING_CALCULATED`, `ORDER_PLACED`, `ORDER_STATUS_CHANGED` y `VALIDATION_FAILED`.
+- Event schema: cada evento incluye `eventId`, `timestamp`, `orderId`, `userId`, `type`, `source`, `correlationId` y `payload`.
+- Consulta: `GET /orders/:orderId/timeline` soporta `pageSize` hasta `50` y cursor.
+- UI: `/orders/:orderId` muestra estado, resumen de eventos y boton al timeline completo en `/orders/:orderId/timeline`.
+- Serverless: `serverless.yml` permite correr la API con `npm run start:offline`.
 
-```bash
-curl -X POST http://localhost:4000/cart/pricing \
-  -H "Content-Type: application/json" \
-  -d '{
-    "items": [
-      {
-        "productId": "classic-burger",
-        "quantity": 2,
-        "modifiers": [
-          { "groupId": "protein", "optionIds": ["beef"] },
-          { "groupId": "toppings", "optionIds": ["cheese", "lettuce"] },
-          { "groupId": "sauces", "optionIds": ["bbq"] }
-        ]
-      }
-    ]
-  }'
-```
+## Decisiones tecnicas
 
-Login:
+- Money se representa en centavos enteros.
+- El backend no confia en totales enviados por el cliente.
+- Las ordenes y eventos del timeline se asocian al usuario autenticado.
+- El timeline es append-only y deduplica eventos por `eventId`.
+- Los payloads del timeline tienen limite de 16KB.
+- El logging enmascara emails y telefonos antes de imprimir bodies.
 
-```bash
-curl -X POST http://localhost:4000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{ "username": "demo", "password": "demo1234" }'
-```
+## Tests cubiertos
 
-Create order:
+- Pricing server-side con centavos enteros.
+- Validacion de modificadores.
+- Idempotencia en `POST /orders`.
+- Persistencia de eventos de carrito en el timeline.
+- Rechazo de eventos invalidos.
+- Ordenamiento, paginacion y deduplicacion del timeline.
 
 ```bash
-curl -X POST http://localhost:4000/orders \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer REPLACE_WITH_TOKEN" \
-  -H "Idempotency-Key: test-key-123" \
-  -d '{
-    "items": [
-      {
-        "productId": "classic-burger",
-        "quantity": 2,
-        "modifiers": [
-          { "groupId": "protein", "optionIds": ["beef"] },
-          { "groupId": "toppings", "optionIds": ["cheese"] },
-          { "groupId": "sauces", "optionIds": ["bbq"] }
-        ]
-      }
-    ]
-  }'
+npm test
 ```
-
-Get order:
-
-```bash
-curl http://localhost:4000/orders/REPLACE_WITH_ORDER_ID \
-  -H "Authorization: Bearer REPLACE_WITH_TOKEN"
-```
-
-Get timeline:
-
-```bash
-curl "http://localhost:4000/orders/REPLACE_WITH_ORDER_ID/timeline?pageSize=20" \
-  -H "Authorization: Bearer REPLACE_WITH_TOKEN"
-```
-
-## Acceptance Checklist
-
-- `npm install`
-- `cp .env.example .env`
-- `docker compose up -d`
-- `npm run seed`
-- `npm run start:offline`
-- Open `http://localhost:4000/docs`
-- `npm test`
-- `npm run build`

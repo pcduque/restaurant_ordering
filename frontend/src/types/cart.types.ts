@@ -1,3 +1,5 @@
+import type { TimelineEventType } from './timeline.types'
+
 export interface SelectedModifier {
   groupId: string
   groupName: string
@@ -27,6 +29,17 @@ export interface CartPricingRequest {
       optionIds: string[]
     }[]
   }[]
+}
+
+export interface CartTimelineEvent {
+  eventId: string
+  timestamp: string
+  type: Extract<TimelineEventType, 'CART_ITEM_ADDED' | 'CART_ITEM_UPDATED' | 'CART_ITEM_REMOVED'>
+  payload: Record<string, unknown>
+}
+
+export interface CreateOrderRequest extends CartPricingRequest {
+  cartEvents: CartTimelineEvent[]
 }
 
 export interface PricedCartItem {

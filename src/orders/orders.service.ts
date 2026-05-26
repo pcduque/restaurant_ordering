@@ -13,10 +13,16 @@ import {
   TimelineEventType,
 } from '../common/enums/timeline.enum';
 import { TimelineService } from '../timeline/timeline.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CartTimelineEventDto, CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './schemas/order.schema';
 import { OrdersRepository } from './orders.repository';
 import { IdempotencyService } from './idempotency.service';
+
+const CART_TIMELINE_EVENT_TYPES = new Set<TimelineEventType>([
+  TimelineEventType.CART_ITEM_ADDED,
+  TimelineEventType.CART_ITEM_UPDATED,
+  TimelineEventType.CART_ITEM_REMOVED,
+]);
 
 @Injectable()
 export class OrdersService {
@@ -56,6 +62,8 @@ export class OrdersService {
     const orderId = uuidv4();
     const correlationId = uuidv4();
 
+    this.validateCartEventTypes(dto.cartEvents ?? []);
+
     let pricing: PricingBreakdown;
     try {
       pricing = await this.pricingService.priceCart({
@@ -85,6 +93,12 @@ export class OrdersService {
       updatedAt: new Date(),
     });
 
+    await this.appendCartEvents(
+      dto.cartEvents ?? [],
+      orderId,
+      userId,
+      correlationId,
+    );
     await this.timelineService.appendEvent({
       orderId,
       userId,
@@ -161,6 +175,37 @@ export class OrdersService {
     });
 
     return this.toOrderResponse(updatedOrder);
+  }
+
+  private async appendCartEvents(
+    events: CartTimelineEventDto[],
+    orderId: string,
+    userId: string,
+    correlationId: string,
+  ) {
+    for (const event of events) {
+      await this.timelineService.appendEvent({
+        eventId: event.eventId,
+        orderId,
+        userId,
+        type: event.type,
+        source: TimelineEventSource.WEB,
+        correlationId,
+        payload: event.payload,
+        timestamp: new Date(event.timestamp),
+      });
+    }
+  }
+
+  private validateCartEventTypes(events: CartTimelineEventDto[]) {
+    const invalid = events.find(
+      (event) => !CART_TIMELINE_EVENT_TYPES.has(event.type),
+    );
+    if (invalid) {
+      throw new BadRequestException(
+        `Unsupported cart timeline event type: ${invalid.type}`,
+      );
+    }
   }
 
   private toOrderResponse(order: Order) {

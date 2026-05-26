@@ -6,6 +6,15 @@ import {
   TimelineEventDocument,
 } from './schemas/timeline-event.schema';
 
+function isDuplicateKeyError(error: unknown): error is { code: number } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 11000
+  );
+}
+
 @Injectable()
 export class TimelineRepository {
   constructor(
@@ -17,7 +26,7 @@ export class TimelineRepository {
     try {
       return await this.eventModel.create(event);
     } catch (error) {
-      if (error?.code === 11000) {
+      if (isDuplicateKeyError(error)) {
         const existing = await this.eventModel
           .findOne({ eventId: event.eventId })
           .lean<TimelineEvent>()
