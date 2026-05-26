@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { CheckCircle2, Plus, ShoppingBag } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
@@ -72,6 +72,7 @@ export function MenuPage() {
   const [auditError, setAuditError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [cartAlert, setCartAlert] = useState<Product | null>(null)
   const addItem = useCartStore((state) => state.addItem)
 
   const loadMenu = useCallback(async () => {
@@ -114,6 +115,19 @@ export function MenuPage() {
     void loadAuditEvents()
   }, [loadAuditEvents])
 
+  useEffect(() => {
+    if (!cartAlert) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => setCartAlert(null), 2600)
+    return () => window.clearTimeout(timeoutId)
+  }, [cartAlert])
+
+  function showCartAlert(product: Product) {
+    setCartAlert(product)
+  }
+
   function handleAdd(product: Product) {
     if (product.modifierGroups.length > 0) {
       setSelectedProduct(product)
@@ -121,6 +135,7 @@ export function MenuPage() {
     }
 
     addItem({ product, quantity: 1, selectedModifiers: [] })
+    showCartAlert(product)
   }
 
   const signatureProducts = products.slice(0, 4)
@@ -214,7 +229,27 @@ export function MenuPage() {
 
       <CartDrawer />
 
-      <ProductCustomizeModal product={selectedProduct} open={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} />
+      {cartAlert ? (
+        <div className="fixed right-4 top-24 z-[60] w-[calc(100%-2rem)] max-w-sm rounded-[8px] border border-[#f6d9bd] bg-white p-4 shadow-[0_22px_60px_rgba(69,48,27,0.22)] sm:right-8">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fff0df] text-[#b8320a]">
+              <CheckCircle2 className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-[#17150f]">Product added to cart</p>
+              <p className="mt-1 truncate text-sm text-[#746f66]">{cartAlert.name}</p>
+            </div>
+            <ShoppingBag className="mt-1 h-5 w-5 shrink-0 text-[#b8320a]" />
+          </div>
+        </div>
+      ) : null}
+
+      <ProductCustomizeModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        onClose={() => setSelectedProduct(null)}
+        onAdded={showCartAlert}
+      />
       <ProductCreateModal
         open={creatingProduct}
         onClose={() => setCreatingProduct(false)}

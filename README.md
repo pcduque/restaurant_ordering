@@ -1,23 +1,23 @@
 # Restaurant Ordering + Order Timeline
 
-Prueba tecnica de pedidos para restaurante. Incluye backend NestJS, frontend React/Vite, MongoDB local, autenticacion simple, pricing server-side, checkout idempotente y un Order Timeline auditable.
+Technical restaurant ordering app with a NestJS backend, React/Vite frontend, local MongoDB, simple authentication, server-side cart pricing, idempotent checkout, and an auditable order timeline.
 
 ## Links
 
-- Repositorio: [pcduque/restaurant_ordering](https://github.com/pcduque/restaurant_ordering)
-- Referencia visual: [Google Stitch](https://stitch.withgoogle.com/projects/2894040620266345089)
-- API Docs local: [http://localhost:4000/docs](http://localhost:4000/docs)
-- Frontend local: [http://localhost:5173](http://localhost:5173)
+- Repository: [pcduque/restaurant_ordering](https://github.com/pcduque/restaurant_ordering)
+- Visual reference: [Google Stitch](https://stitch.withgoogle.com/projects/2894040620266345089)
+- Local API docs: [http://localhost:4000/docs](http://localhost:4000/docs)
+- Local frontend: [http://localhost:5173](http://localhost:5173)
 
-## Requisitos
+## Requirements
 
 - Node.js 20+
 - npm
 - Docker Desktop
 
-## Correr localmente
+## Quick Start
 
-Desde una maquina limpia:
+From a clean machine:
 
 ```bash
 git clone https://github.com/pcduque/restaurant_ordering.git
@@ -29,25 +29,25 @@ npm run seed
 npm run start:offline
 ```
 
-En Windows PowerShell, si `cp` no esta disponible:
+On Windows PowerShell, use this if `cp` is not available:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-La API queda en:
+The backend API will be available at:
 
 ```text
 http://localhost:4000
 ```
 
-Swagger queda en:
+Swagger/OpenAPI docs will be available at:
 
 ```text
 http://localhost:4000/docs
 ```
 
-En otra terminal, correr el frontend:
+In a second terminal, start the frontend:
 
 ```bash
 cd frontend
@@ -56,35 +56,35 @@ cp .env.example .env
 npm run dev
 ```
 
-En Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Abrir:
+Open the app at:
 
 ```text
 http://localhost:5173
 ```
 
-Usuario demo:
+Demo user:
 
 ```text
 username: demo
 password: demo1234
 ```
 
-## Orden de arranque
+## Startup Order
 
 1. `docker compose up -d`
 2. `npm run seed`
 3. `npm run start:offline`
 4. `cd frontend && npm run dev`
 
-## Variables de entorno
+## Environment Variables
 
-Backend `.env` en la raiz:
+Backend `.env` in the project root:
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/restaurant_ordering
@@ -92,8 +92,8 @@ PORT=4000
 NODE_ENV=development
 ```
 
-- Requerida: `MONGODB_URI`
-- Opcionales: `PORT`, `NODE_ENV`, `SEED_USERNAME`, `SEED_PASSWORD`
+- Required: `MONGODB_URI`
+- Optional: `PORT`, `NODE_ENV`, `SEED_USERNAME`, `SEED_PASSWORD`
 - Defaults: `PORT=4000`, `NODE_ENV=development`, `SEED_USERNAME=demo`, `SEED_PASSWORD=demo1234`
 
 Frontend `frontend/.env`:
@@ -102,37 +102,72 @@ Frontend `frontend/.env`:
 VITE_API_BASE_URL=http://localhost:4000
 ```
 
-- Requerida: `VITE_API_BASE_URL`
+- Required: `VITE_API_BASE_URL`
 
-## Puertos
+## Ports
 
 - Backend API: `4000`
-- Frontend Vite: `5173`
+- Frontend Vite dev server: `5173`
 - MongoDB: `27017`
-- Swagger: `/docs`
+- Swagger/OpenAPI: `/docs`
+- Serverless offline lambda port: `4002`
+
+## Database
+
+The app uses MongoDB with the default database:
+
+```text
+restaurant_ordering
+```
+
+Expected collections:
+
+- `products`: menu products and modifier groups.
+- `users`: registered users and the demo user.
+- `orders`: placed orders.
+- `timelineevents`: auditable order and cart timeline events.
+- `idempotencykeys`: checkout idempotency records.
+
+MongoDB creates collections automatically when data is inserted. There are no manual migrations required for local setup.
+
+The seed command:
+
+```bash
+npm run seed
+```
+
+does the following:
+
+- Clears and reloads the `products` collection with demo menu data.
+- Ensures the demo user exists.
+- Does not clear `orders`, `timelineevents`, or `idempotencykeys`.
 
 ## Scripts
 
 Backend:
 
 ```bash
-npm run start:offline   # API con serverless-offline en puerto 4000
-npm run start:dev       # Nest en modo watch
-npm run seed            # menu demo + usuario demo
-npm test
-npm run build
+npm run start:offline   # Builds the backend and runs serverless-offline on port 4000
+npm run start:dev       # Runs NestJS in watch mode
+npm run seed            # Loads demo menu products and ensures the demo user exists
+npm test                # Runs backend unit tests
+npm run build           # Builds the backend
+npm run lint            # Runs ESLint with fixes
 ```
 
 Frontend:
 
 ```bash
 cd frontend
-npm run dev
-npm run build
-npm run lint
+npm run dev             # Starts the Vite dev server
+npm run build           # Type-checks and builds the frontend
+npm run lint            # Runs frontend linting
+npm run preview         # Serves the production build locally
 ```
 
-## Validacion rapida
+## Verification
+
+Recommended checks before submitting:
 
 ```bash
 npm test
@@ -142,22 +177,29 @@ npm run build
 npm run lint
 ```
 
-Los tests backend no requieren MongoDB ni seed; usan mocks/unit tests.
+Backend tests do not require MongoDB or seeded data; they use unit tests and mocks.
 
-## Flujo para revisar
+## Manual Review Flow
 
-1. Login con `demo` / `demo1234`.
-2. Agregar productos al carrito, editar cantidades y remover algun item.
-3. Revisar el pricing calculado por el backend en el carrito.
-4. Completar checkout.
-5. Abrir el detalle de la orden en `/orders/:orderId`.
-6. Usar el boton `View full timeline`.
-7. Revisar eventos ordenados por timestamp y payload expandible.
-8. Usar `Back to order` para volver al detalle.
+1. Log in with `demo` / `demo1234`.
+2. Browse the menu.
+3. Add products to the cart.
+4. Customize products with modifier options when available.
+5. Edit quantities or remove cart items.
+6. Review server-side cart pricing.
+7. Complete checkout.
+8. Open the order detail page at `/orders/:orderId`.
+9. Use `View full timeline`.
+10. Review timestamped events and expandable payloads.
+11. Use `Back to order` to return to the order detail page.
 
-## Endpoints principales
+## Main Endpoints
 
 - `GET /menu`
+- `GET /menu/:productId`
+- `POST /menu`
+- `PATCH /menu/:productId`
+- `DELETE /menu/:productId`
 - `POST /cart/pricing`
 - `POST /auth/register`
 - `POST /auth/login`
@@ -165,43 +207,48 @@ Los tests backend no requieren MongoDB ni seed; usan mocks/unit tests.
 - `GET /orders`
 - `POST /orders`
 - `GET /orders/:orderId`
+- `PATCH /orders/:orderId/status`
 - `GET /orders/:orderId/timeline?pageSize=20&cursor=...`
+- `GET /timeline/me?pageSize=20&cursor=...`
 
 ## Stack
 
 - Backend: NestJS, TypeScript, MongoDB, Mongoose, Serverless Framework, Jest, Swagger/OpenAPI
 - Frontend: React, Vite, TypeScript, Tailwind CSS, Zustand, Axios, React Router
-- Infra local: Docker Compose para MongoDB
+- Local infrastructure: Docker Compose for MongoDB
 
-## Cobertura del reto
+## Challenge Coverage
 
-- Menu: `npm run seed` carga 7 productos.
-- Modificadores: 2 productos soportan `Protein`, `Toppings` y `Sauces`.
-- Cart: permite agregar, editar, remover y recalcular precios desde la API.
-- Checkout: `POST /orders` responde `202 Accepted` y soporta `Idempotency-Key`.
-- Timeline: persiste `CART_ITEM_ADDED`, `CART_ITEM_UPDATED`, `CART_ITEM_REMOVED`, `PRICING_CALCULATED`, `ORDER_PLACED`, `ORDER_STATUS_CHANGED` y `VALIDATION_FAILED`.
-- Event schema: cada evento incluye `eventId`, `timestamp`, `orderId`, `userId`, `type`, `source`, `correlationId` y `payload`.
-- Consulta: `GET /orders/:orderId/timeline` soporta `pageSize` hasta `50` y cursor.
-- UI: `/orders/:orderId` muestra estado, resumen de eventos y boton al timeline completo en `/orders/:orderId/timeline`.
-- Serverless: `serverless.yml` permite correr la API con `npm run start:offline`.
+- Menu: `npm run seed` loads 7 demo products.
+- Modifiers: selected products support modifier groups such as protein, toppings, and sauces.
+- Cart: supports adding, editing, removing, and server-side price recalculation.
+- Checkout: `POST /orders` returns `202 Accepted` and supports the `Idempotency-Key` header.
+- Timeline: persists `CART_ITEM_ADDED`, `CART_ITEM_UPDATED`, `CART_ITEM_REMOVED`, `PRICING_CALCULATED`, `ORDER_PLACED`, `ORDER_STATUS_CHANGED`, and `VALIDATION_FAILED`.
+- Event schema: each event includes `eventId`, `timestamp`, `orderId`, `userId`, `type`, `source`, `correlationId`, and `payload`.
+- Timeline query: `GET /orders/:orderId/timeline` supports cursor pagination and a `pageSize` up to `50`.
+- UI: `/orders/:orderId` shows status, pricing, event summary, and a link to the full timeline at `/orders/:orderId/timeline`.
+- Serverless: `serverless.yml` runs the API locally through `npm run start:offline`.
 
-## Decisiones tecnicas
+## Technical Decisions
 
-- Money se representa en centavos enteros.
-- El backend no confia en totales enviados por el cliente.
-- Las ordenes y eventos del timeline se asocian al usuario autenticado.
-- El timeline es append-only y deduplica eventos por `eventId`.
-- Los payloads del timeline tienen limite de 16KB.
-- El logging enmascara emails y telefonos antes de imprimir bodies.
+- Money is represented as integer cents.
+- The backend does not trust totals sent by the client.
+- Orders and timeline events are associated with the authenticated user.
+- Checkout is idempotent through the `Idempotency-Key` header.
+- The timeline is append-only and deduplicates events by `eventId`.
+- Timeline payloads are limited to 16 KB.
+- Request logging masks emails and phone numbers before printing request bodies.
 
-## Tests cubiertos
+## Test Coverage
 
-- Pricing server-side con centavos enteros.
-- Validacion de modificadores.
-- Idempotencia en `POST /orders`.
-- Persistencia de eventos de carrito en el timeline.
-- Rechazo de eventos invalidos.
-- Ordenamiento, paginacion y deduplicacion del timeline.
+- Server-side pricing with integer cents.
+- Modifier validation.
+- Checkout idempotency.
+- Cart event persistence in the timeline.
+- Invalid event rejection.
+- Timeline sorting, pagination, and deduplication.
+
+Run tests with:
 
 ```bash
 npm test

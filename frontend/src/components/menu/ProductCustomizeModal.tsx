@@ -11,9 +11,10 @@ interface ProductCustomizeModalProps {
   product: Product | null
   open: boolean
   onClose: () => void
+  onAdded?: (product: Product) => void
 }
 
-export function ProductCustomizeModal({ product, open, onClose }: ProductCustomizeModalProps) {
+export function ProductCustomizeModal({ product, open, onClose, onAdded }: ProductCustomizeModalProps) {
   const addItem = useCartStore((state) => state.addItem)
   const [quantity, setQuantity] = useState(1)
   const [selections, setSelections] = useState<Record<string, string[]>>({})
@@ -59,6 +60,7 @@ export function ProductCustomizeModal({ product, open, onClose }: ProductCustomi
     }
 
     addItem({ product: activeProduct, quantity, selectedModifiers })
+    onAdded?.(activeProduct)
     setQuantity(1)
     setSelections({})
     onClose()

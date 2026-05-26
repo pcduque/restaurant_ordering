@@ -9,7 +9,7 @@ import { Spinner } from '../components/ui/Spinner'
 import { useAuthStore } from '../store/auth.store'
 import type { Order, OrderStatus } from '../types/order.types'
 import type { TimelineEvent } from '../types/timeline.types'
-import { formatDateTime } from '../utils/date'
+import { formatDateTime, formatTime } from '../utils/date'
 import { formatMoney } from '../utils/money'
 import { getProductImage } from '../utils/productImages'
 
@@ -69,6 +69,16 @@ function getTrackingSteps(currentStatus: OrderStatus) {
     Icon: Home,
   },
 ]
+}
+
+function getEstimatedDeliveryTime(order: Order) {
+  const createdAt = new Date(order.createdAt)
+  const idOffset = order.orderId
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0) % 16
+  const estimatedDelivery = new Date(createdAt.getTime() + (30 + idOffset) * 60_000)
+
+  return formatTime(estimatedDelivery)
 }
 
 export function OrderStatusPage() {
@@ -157,6 +167,7 @@ export function OrderStatusPage() {
 
   const shortOrderId = order.orderId.slice(0, 5).toUpperCase()
   const trackingSteps = getTrackingSteps(order.status)
+  const estimatedDeliveryTime = getEstimatedDeliveryTime(order)
   return (
     <div className="-mx-4 -mt-8 bg-[#f7f1e6] sm:-mx-8 lg:-mx-10">
       <main className="mx-auto max-w-5xl px-6 py-16 sm:px-10">
@@ -168,7 +179,7 @@ export function OrderStatusPage() {
             <p className="mt-4 text-2xl text-[#5f5a54]">Placed on {formatDateTime(order.createdAt)}</p>
           </div>
           <div className="self-start rounded-full bg-[#ff5a00] px-8 py-4 text-sm font-black uppercase tracking-wide text-[#17150f] lg:self-auto">
-            Estimated delivery: 8:25 PM
+            Estimated delivery: {estimatedDeliveryTime}
           </div>
         </div>
 
