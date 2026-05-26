@@ -32,3 +32,15 @@ input:focus-visible {
   outline: 3px solid rgba(245, 158, 11, 0.45);
   outline-offset: 2px;
 }
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-4rem);
+  }
+  50% {
+    transform: translateX(9rem);
+  }
+  100% {
+    transform: translateX(20rem);
+  }
+}

@@ -1,9 +1,37 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { NextFunction, Request, Response } from 'express';
+import { json, NextFunction, Request, Response, urlencoded } from 'express';
 import { MaskedLoggingInterceptor } from './common/interceptors/masked-logging.interceptor';
+import { MAX_TIMELINE_PAYLOAD_BYTES } from './common/utils/payload-size.util';
+
+type BodyParserError = Error & {
+  status?: number;
+  type?: string;
+};
 
 export function configureApp(app: INestApplication): void {
+  app.use(json({ limit: MAX_TIMELINE_PAYLOAD_BYTES }));
+  app.use(urlencoded({ extended: true, limit: MAX_TIMELINE_PAYLOAD_BYTES }));
+  app.use(
+    (
+      error: BodyParserError,
+      _request: Request,
+      response: Response,
+      next: NextFunction,
+    ) => {
+      if (error.type === 'entity.too.large') {
+        response.status(400).json({
+          statusCode: 400,
+          message: `Request payload must be <= ${MAX_TIMELINE_PAYLOAD_BYTES} bytes`,
+          error: 'Bad Request',
+        });
+        return;
+      }
+
+      next(error);
+    },
+  );
+
   app.use((request: Request, _response: Response, next: NextFunction) => {
     const body =
       Buffer.isBuffer(request.body) || ArrayBuffer.isView(request.body)

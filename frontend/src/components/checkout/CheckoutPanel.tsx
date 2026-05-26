@@ -8,6 +8,7 @@ import { useCartStore } from '../../store/cart.store'
 import { createIdempotencyKey } from '../../utils/idempotency'
 import { Button } from '../ui/Button'
 import { ErrorState } from '../ui/ErrorState'
+import { PlacingOrderScreen } from './PlacingOrderScreen'
 
 interface CheckoutPanelProps {
   disabled?: boolean
@@ -22,6 +23,12 @@ export function CheckoutPanel({ disabled = false, variant = 'default' }: Checkou
   const token = useAuthStore((state) => state.token)
   const navigate = useNavigate()
 
+  function wait(ms: number) {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, ms)
+    })
+  }
+
   async function checkout() {
     if (!token) {
       navigate('/login?redirectTo=/cart')
@@ -32,6 +39,7 @@ export function CheckoutPanel({ disabled = false, variant = 'default' }: Checkou
     setError('')
     try {
       const order = await createOrder(toPricingRequest(), createIdempotencyKey())
+      await wait(3000)
       clearCart()
       navigate(`/orders/${order.orderId}`)
     } catch (err) {
@@ -43,6 +51,7 @@ export function CheckoutPanel({ disabled = false, variant = 'default' }: Checkou
 
   return (
     <div className="space-y-4">
+      {loading ? <PlacingOrderScreen /> : null}
       {error ? <ErrorState title="Checkout failed" message={error} /> : null}
       <Button
         className={
