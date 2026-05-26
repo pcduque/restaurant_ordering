@@ -7,7 +7,7 @@ let cachedHandler: ReturnType<typeof serverless>;
 
 async function bootstrap() {
   if (!cachedHandler) {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { bodyParser: false });
     configureApp(app);
     await app.init();
     cachedHandler = serverless(app.getHttpAdapter().getInstance());

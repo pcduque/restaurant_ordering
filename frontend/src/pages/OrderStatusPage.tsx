@@ -3,8 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getOrder, getOrderTimeline, updateOrderStatus } from '../api/orders.api'
+import { OrderNotFoundScreen } from '../components/orders/OrderNotFoundScreen'
 import { TimelineList } from '../components/timeline/TimelineList'
-import { ErrorState } from '../components/ui/ErrorState'
 import { Spinner } from '../components/ui/Spinner'
 import { useAuthStore } from '../store/auth.store'
 import type { Order, OrderStatus } from '../types/order.types'
@@ -152,7 +152,7 @@ export function OrderStatusPage() {
   }
 
   if (error || !order) {
-    return <ErrorState message={error || 'Order was not found'} onRetry={loadOrder} />
+    return <OrderNotFoundScreen onRetry={() => void loadOrder()} />
   }
 
   const shortOrderId = order.orderId.slice(0, 5).toUpperCase()
