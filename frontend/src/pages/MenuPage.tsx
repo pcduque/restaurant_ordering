@@ -127,10 +127,10 @@ export function MenuPage() {
   const smallPlates = products.slice(4)
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_450px]">
-      <section>
+    <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="min-w-0">
         <div
-          className="relative mb-20 min-h-[540px] overflow-hidden rounded-[24px] bg-[#11140f] shadow-[0_28px_70px_rgba(69,48,27,0.22)]"
+          className="relative mb-14 min-h-[420px] overflow-hidden rounded-[18px] bg-[#11140f] shadow-[0_28px_70px_rgba(69,48,27,0.22)] sm:mb-20 sm:min-h-[500px] sm:rounded-[24px]"
           style={{
             backgroundImage: 'linear-gradient(90deg, rgba(5,7,6,0.96), rgba(5,7,6,0.64), rgba(5,7,6,0.96)), url(/images/loaded_bowl.jpg)',
             backgroundPosition: 'center',
@@ -138,14 +138,14 @@ export function MenuPage() {
           }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(177,80,30,0.24),transparent_34rem)]" />
-          <div className="relative flex min-h-[540px] flex-col items-center justify-center px-8 py-16 text-center text-white">
-            <p className="text-sm font-black uppercase text-[#c84a18]">The modern epicurean experience</p>
-            <h1 className="mt-6 max-w-4xl font-serif text-5xl font-black leading-none sm:text-7xl lg:text-8xl">
+          <div className="relative flex min-h-[420px] flex-col items-center justify-center px-5 py-12 text-center text-white sm:min-h-[500px] sm:px-8 sm:py-16">
+            <p className="text-xs font-black uppercase text-[#c84a18] sm:text-sm">The modern epicurean experience</p>
+            <h1 className="mt-5 max-w-4xl font-serif text-4xl font-black leading-none sm:mt-6 sm:text-6xl lg:text-7xl">
               Build the order,
               <br />
               <span className="italic">verify the audit trail.</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#fff4e0]">
+            <p className="mt-6 max-w-2xl text-sm leading-7 text-[#fff4e0] sm:mt-7 sm:text-lg sm:leading-8">
               Browse the menu, customize dishes, price the cart server-side, and inspect every order event after checkout.
             </p>
           </div>
@@ -155,10 +155,10 @@ export function MenuPage() {
         {error ? <ErrorState message={error} onRetry={loadMenu} /> : null}
         {!loading && !error ? (
           <>
-            <div className="mb-10 flex items-center gap-5">
-              <h2 className="font-serif text-4xl font-black text-[#17150f]">Signature Dishes</h2>
-              <div className="h-px flex-1 bg-[#e7dece]" />
-              <Button onClick={() => setCreatingProduct(true)} className="shrink-0 bg-[#b8320a] text-base hover:bg-[#8f2708]">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+              <h2 className="font-serif text-3xl font-black text-[#17150f] sm:text-4xl">Signature Dishes</h2>
+              <div className="hidden h-px flex-1 bg-[#e7dece] sm:block" />
+              <Button onClick={() => setCreatingProduct(true)} className="w-full shrink-0 bg-[#b8320a] text-base hover:bg-[#8f2708] sm:w-auto">
                 <Plus className="h-5 w-5" />
                 Add product
               </Button>
@@ -197,7 +197,7 @@ export function MenuPage() {
 
             <section className="mt-28">
               <div className="mb-8 flex items-center gap-5">
-                <h2 className="font-serif text-4xl font-black text-[#17150f]">Small Plates</h2>
+                <h2 className="font-serif text-3xl font-black text-[#17150f] sm:text-4xl">Small Plates</h2>
                 <div className="h-px flex-1 bg-[#e7dece]" />
               </div>
               {smallPlates.length > 0 ? (

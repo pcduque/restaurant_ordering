@@ -1,6 +1,6 @@
-import { ChevronDown, RefreshCw, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ChevronDown, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getOrder, getOrderTimeline } from '../api/orders.api'
 import { OrderNotFoundScreen } from '../components/orders/OrderNotFoundScreen'
@@ -129,6 +129,13 @@ export function OrderTimelinePage() {
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#b8320a]" />
               <span>This order has passed automated security audits.</span>
             </div>
+            <Link
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-[8px] border border-[#d6c6b5] bg-[#fbf6ec] px-4 py-4 text-xs font-black uppercase text-[#17150f] transition hover:bg-white"
+              to={`/orders/${order.orderId}`}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to order
+            </Link>
             <button
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#b8320a] px-4 py-4 text-xs font-black uppercase text-white transition hover:bg-[#8f2708]"
               type="button"

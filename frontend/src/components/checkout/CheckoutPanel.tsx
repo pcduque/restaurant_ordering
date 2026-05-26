@@ -18,7 +18,7 @@ interface CheckoutPanelProps {
 export function CheckoutPanel({ disabled = false, variant = 'default' }: CheckoutPanelProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const toPricingRequest = useCartStore((state) => state.toPricingRequest)
+  const toOrderRequest = useCartStore((state) => state.toOrderRequest)
   const clearCart = useCartStore((state) => state.clearCart)
   const token = useAuthStore((state) => state.token)
   const navigate = useNavigate()
@@ -38,7 +38,7 @@ export function CheckoutPanel({ disabled = false, variant = 'default' }: Checkou
     setLoading(true)
     setError('')
     try {
-      const order = await createOrder(toPricingRequest(), createIdempotencyKey())
+      const order = await createOrder(toOrderRequest(), createIdempotencyKey())
       await wait(3000)
       clearCart()
       navigate(`/orders/${order.orderId}`)

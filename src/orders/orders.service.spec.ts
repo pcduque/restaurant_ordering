@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
 import { BadRequestException } from '@nestjs/common';
 import { OrderStatus } from '../common/enums/order-status.enum';
+import {
+  TimelineEventSource,
+  TimelineEventType,
+} from '../common/enums/timeline.enum';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
@@ -68,6 +73,119 @@ describe('Orders', () => {
 
     expect(second.orderId).toBe(first.orderId);
     expect(ordersRepository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('persists cart events with the checkout order context', async () => {
+    const { service, timelineService } = createService();
+
+    const response = await service.createOrder(
+      {
+        ...dto,
+        cartEvents: [
+          {
+            eventId: '4f5ed4d5-0fb9-4e0b-a338-24219637ec5f',
+            timestamp: '2026-05-25T18:30:00.000Z',
+            type: TimelineEventType.CART_ITEM_ADDED,
+            payload: { productId: 'fries', quantity: 1 },
+          },
+          {
+            eventId: '320b0197-9e9e-4356-bf77-639a7c728699',
+            timestamp: '2026-05-25T18:31:00.000Z',
+            type: TimelineEventType.CART_ITEM_UPDATED,
+            payload: { productId: 'fries', quantity: 2 },
+          },
+          {
+            eventId: 'c4c0ec4e-0789-44b1-9815-69e64a1eaf40',
+            timestamp: '2026-05-25T18:32:00.000Z',
+            type: TimelineEventType.CART_ITEM_REMOVED,
+            payload: { productId: 'fries' },
+          },
+        ],
+      },
+      'cart-events-key',
+      user,
+    );
+
+    expect(timelineService.appendEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventId: '4f5ed4d5-0fb9-4e0b-a338-24219637ec5f',
+        orderId: response.orderId,
+        userId: user.userId,
+        type: TimelineEventType.CART_ITEM_ADDED,
+        source: TimelineEventSource.WEB,
+        correlationId: response.correlationId,
+        timestamp: new Date('2026-05-25T18:30:00.000Z'),
+      }),
+    );
+    expect(timelineService.appendEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: TimelineEventType.CART_ITEM_UPDATED,
+        source: TimelineEventSource.WEB,
+        correlationId: response.correlationId,
+      }),
+    );
+    expect(timelineService.appendEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: TimelineEventType.CART_ITEM_REMOVED,
+        source: TimelineEventSource.WEB,
+        correlationId: response.correlationId,
+      }),
+    );
+  });
+
+  it('rejects non-cart events in checkout payload before creating an order', async () => {
+    const { service, ordersRepository, timelineService } = createService();
+
+    await expect(
+      service.createOrder(
+        {
+          ...dto,
+          cartEvents: [
+            {
+              eventId: '5a497a5b-8505-45dd-bd88-b742aeb65db4',
+              timestamp: '2026-05-25T18:30:00.000Z',
+              type: TimelineEventType.ORDER_PLACED,
+              payload: { productId: 'fries' },
+            },
+          ],
+        },
+        'invalid-cart-event-key',
+        user,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(ordersRepository.create).not.toHaveBeenCalled();
+    expect(timelineService.appendEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not replay cart timeline events for repeated idempotency keys', async () => {
+    const { service, ordersRepository, timelineService } = createService();
+    const orderPayload = {
+      ...dto,
+      cartEvents: [
+        {
+          eventId: '9c03e43c-f0e4-4a5d-8473-67974fd12ea5',
+          timestamp: '2026-05-25T18:30:00.000Z',
+          type: TimelineEventType.CART_ITEM_ADDED,
+          payload: { productId: 'fries', quantity: 1 },
+        },
+      ],
+    };
+
+    const first = await service.createOrder(
+      orderPayload,
+      'same-cart-event-key',
+      user,
+    );
+    const second = await service.createOrder(
+      orderPayload,
+      'same-cart-event-key',
+      user,
+    );
+
+    expect(second.orderId).toBe(first.orderId);
+    expect(ordersRepository.create).toHaveBeenCalledTimes(1);
+    expect(timelineService.appendEvent).toHaveBeenCalledTimes(4);
   });
 
   it('missing Idempotency-Key returns 400', async () => {

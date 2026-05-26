@@ -23,13 +23,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e8dfcf] bg-[#f7f1e6]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10">
-        <Link to="/" className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-4 sm:px-8 lg:px-10">
+        <Link to="/" className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#a42d08] font-serif text-lg font-black text-white shadow-sm">
             S
           </span>
-          <span>
-            <span className="block font-serif text-xl font-bold text-[#17150f]">SunDevs Restaurant Ordering</span>
+          <span className="hidden min-w-0 sm:block">
+            <span className="block truncate font-serif text-lg font-bold text-[#17150f] lg:text-xl">SunDevs Restaurant Ordering</span>
           </span>
         </Link>
 
@@ -52,7 +52,7 @@ export function Header() {
           </NavLink>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <NavLink
             to="/cart"
             className={({ isActive }) =>

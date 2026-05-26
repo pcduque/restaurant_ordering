@@ -1,6 +1,6 @@
-import { Bike, Check, ConciergeBell, Home, Utensils } from 'lucide-react'
+import { Bike, Check, ConciergeBell, History, Home, Utensils } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
 import { getOrder, getOrderTimeline, updateOrderStatus } from '../api/orders.api'
 import { OrderNotFoundScreen } from '../components/orders/OrderNotFoundScreen'
@@ -217,6 +217,13 @@ export function OrderStatusPage() {
                 <div>
                   <h2 className="font-serif text-3xl font-black text-[#17150f]">Order Details</h2>
                   <p className="mt-2 text-sm font-bold uppercase text-[#a42d08]">Current status: {statusLabels[order.status]}</p>
+                  <Link
+                    className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#171913] px-4 py-2 text-sm font-black text-white transition hover:bg-[#2a2d22]"
+                    to={`/orders/${order.orderId}/timeline`}
+                  >
+                    <History className="h-4 w-4" />
+                    View full timeline
+                  </Link>
                 </div>
                 <div className="flex flex-col gap-3">
                   <select
