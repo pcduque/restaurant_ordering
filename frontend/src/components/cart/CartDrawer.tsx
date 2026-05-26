@@ -50,11 +50,11 @@ export function CartDrawer() {
             </div>
             <div className="mt-5 flex items-center justify-between">
               <div className="inline-flex items-center rounded-full bg-[#f4eee4] px-3 py-2">
-                <button className="px-2 text-xs font-bold" type="button" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
+                <button className="px-3 text-lg font-black" type="button" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
                   -
                 </button>
-                <span className="min-w-8 text-center text-xs font-black">{item.quantity}</span>
-                <button className="px-2 text-xs font-bold" type="button" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
+                <span className="min-w-8 text-center text-sm font-black">{item.quantity}</span>
+                <button className="px-3 text-lg font-black" type="button" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
                   +
                 </button>
               </div>

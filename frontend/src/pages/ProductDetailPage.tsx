@@ -192,12 +192,12 @@ export function ProductDetailPage() {
                 </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <Button variant="secondary" className="h-10 w-10 p-0" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label="Decrease quantity">
-                      <Minus className="h-4 w-4" />
+                    <Button variant="secondary" className="h-12 w-12 p-0" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label="Decrease quantity">
+                      <Minus className="h-5 w-5" />
                     </Button>
-                    <span className="w-8 text-center text-lg font-black">{quantity}</span>
-                    <Button variant="secondary" className="h-10 w-10 p-0" onClick={() => setQuantity((value) => value + 1)} aria-label="Increase quantity">
-                      <Plus className="h-4 w-4" />
+                    <span className="w-10 text-center text-xl font-black">{quantity}</span>
+                    <Button variant="secondary" className="h-12 w-12 p-0" onClick={() => setQuantity((value) => value + 1)} aria-label="Increase quantity">
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </div>
                   <Button disabled={Boolean(validationMessage)} onClick={addToCart} className="sm:min-w-44">

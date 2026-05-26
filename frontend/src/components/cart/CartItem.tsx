@@ -42,11 +42,11 @@ export function CartItem({ item, variant = 'default' }: CartItemProps) {
 
         <div className="mt-8 flex items-center justify-between">
           <div className="inline-flex items-center rounded-full bg-[#f3eee6] px-5 py-3">
-            <button className="px-3 text-xl font-bold text-[#17150f]" type="button" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
+            <button className="px-4 text-2xl font-black text-[#17150f]" type="button" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
               -
             </button>
             <span className="min-w-12 text-center text-2xl font-black text-[#17150f]">{item.quantity}</span>
-            <button className="px-3 text-xl font-bold text-[#17150f]" type="button" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
+            <button className="px-4 text-2xl font-black text-[#17150f]" type="button" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
               +
             </button>
           </div>
@@ -81,12 +81,12 @@ export function CartItem({ item, variant = 'default' }: CartItemProps) {
 
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="secondary" className="h-9 w-9 p-0" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
-            <Minus className="h-4 w-4" />
+          <Button variant="secondary" className="h-11 w-11 p-0" onClick={() => decreaseQuantity(item.localCartItemId)} aria-label="Decrease quantity">
+            <Minus className="h-5 w-5" />
           </Button>
-          <span className="w-8 text-center font-black">{item.quantity}</span>
-          <Button variant="secondary" className="h-9 w-9 p-0" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
-            <Plus className="h-4 w-4" />
+          <span className="w-10 text-center text-lg font-black">{item.quantity}</span>
+          <Button variant="secondary" className="h-11 w-11 p-0" onClick={() => increaseQuantity(item.localCartItemId)} aria-label="Increase quantity">
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
         <p className="font-black text-slate-950">{formatMoney((item.basePriceCents + modifierTotal) * item.quantity)}</p>

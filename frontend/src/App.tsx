@@ -5,6 +5,7 @@ import { AuthPage } from './pages/AuthPage'
 import { MenuPage } from './pages/MenuPage'
 import { MyOrdersPage } from './pages/MyOrdersPage'
 import { OrderStatusPage } from './pages/OrderStatusPage'
+import { OrderTimelinePage } from './pages/OrderTimelinePage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="cart" element={<CartPage />} />
         <Route path="products/:productId" element={<ProductDetailPage />} />
         <Route path="orders" element={<MyOrdersPage />} />
+        <Route path="orders/:orderId/timeline" element={<OrderTimelinePage />} />
         <Route path="orders/:orderId" element={<OrderStatusPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

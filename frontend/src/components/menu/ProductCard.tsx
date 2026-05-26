@@ -42,13 +42,13 @@ export function ProductCard({ product, onAdd, onOpen }: ProductCardProps) {
       <div className="bg-white p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-serif text-xl font-bold text-[#17150f]">{product.name}</h3>
-            <p className="mt-3 min-h-12 max-w-[19rem] text-sm leading-6 text-[#746f66]">{product.description}</p>
+            <h3 className="font-serif text-2xl font-bold text-[#17150f]">{product.name}</h3>
+            <p className="mt-3 min-h-14 max-w-[19rem] text-base leading-7 text-[#746f66]">{product.description}</p>
           </div>
-          <p className="shrink-0 text-sm font-bold text-[#17150f]">{formatMoney(product.basePriceCents)}</p>
+          <p className="shrink-0 text-base font-bold text-[#17150f]">{formatMoney(product.basePriceCents)}</p>
         </div>
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-[#eee6d8] pt-5">
-          <span className={`text-[10px] font-black uppercase ${customizable ? 'text-[#a42d08]' : 'text-[#9d978b]'}`}>
+          <span className={`text-xs font-black uppercase ${customizable ? 'text-[#a42d08]' : 'text-[#9d978b]'}`}>
             {customizable ? `${product.modifierGroups.length} modifier groups` : 'Ready to add'}
           </span>
           <Button
@@ -56,7 +56,7 @@ export function ProductCard({ product, onAdd, onOpen }: ProductCardProps) {
               event.stopPropagation()
               onAdd(product)
             }}
-            className={`min-h-9 shrink-0 px-5 py-2 text-[11px] ${customizable ? 'bg-[#17150f] hover:bg-[#2c2922]' : 'bg-[#b8320a] hover:bg-[#8f2708]'}`}
+            className={`min-h-9 shrink-0 px-5 py-2 text-[15px] ${customizable ? 'bg-[#17150f] hover:bg-[#2c2922]' : 'bg-[#b8320a] hover:bg-[#8f2708]'}`}
           >
             {customizable ? 'Customize' : 'Add to Order'}
           </Button>

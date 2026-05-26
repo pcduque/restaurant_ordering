@@ -26,7 +26,7 @@ export function Header() {
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#a42d08] font-serif text-lg font-black text-white shadow-sm">
-            L
+            S
           </span>
           <span>
             <span className="block font-serif text-xl font-bold text-[#17150f]">SunDevs Restaurant Ordering</span>
@@ -50,11 +50,9 @@ export function Header() {
           >
             Orders
           </NavLink>
-          <span>About</span>
         </nav>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-[11px] font-bold uppercase text-[#1f1c16] sm:inline">Track orders</span>
           <NavLink
             to="/cart"
             className={({ isActive }) =>
